@@ -65,6 +65,7 @@ const show = (info?: any) => {
   if (info) {
     Object.assign(form, {
       ...info,
+      img: new URL(info.img).pathname,
       ifShow: info.ifShow === "1" ? true : false,
     });
     imageUrl.value = info.img

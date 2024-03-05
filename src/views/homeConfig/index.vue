@@ -1,7 +1,6 @@
 <template>
   <div class="container">
     <BannerDialog ref="BannerRef" @success="BannerSuc"></BannerDialog>
-    <HighlightDialog ref="HighRef" @success="HighSuc"></HighlightDialog>
     <CustomDialog ref="CustomRef" @success="CustomSuc"></CustomDialog>
     <RelativeServiceDialog
       ref="RelativeRef"
@@ -15,7 +14,9 @@
     <h2>首页内容设置</h2>
     <div class="banner-container box">
       <h3>banner 设置</h3>
-      <el-button type="primary" @click="showBannerDialog">添加banner</el-button>
+      <el-button class="btn" type="primary" @click="showBannerDialog"
+        >添加banner</el-button
+      >
       <div class="horizon-box">
         <el-card
           v-for="item in currentBanners"
@@ -46,28 +47,41 @@
     </div>
 
     <div class="box">
-      <h3>亮点业务 设置</h3>
-      <el-button type="primary" @click="showHighDialog">添加亮点业务</el-button>
+      <h3>相关服务 设置</h3>
+      <el-button class="btn" type="primary" @click="showRelativeDialog"
+        >添加服务</el-button
+      >
       <div class="horizon-box">
-        <el-card class="box-card horizon-item" v-for="item in highlights">
-          <h4>
-            {{ item.title }} / <span>{{ item.engTit }}</span>
-          </h4>
-          <p>{{ item.description }}</p>
-          <p>是否展示：{{ item.ifShow === "1" ? "展示" : "不展示" }}</p>
+        <el-card
+          v-for="item in currentRelatives"
+          :body-style="{ padding: '0px' }"
+          :key="item.id"
+          class="horizon-item"
+        >
+          <div class="img-box">
+            <img :src="item.img" class="image" />
+          </div>
+          <div style="padding: 14px">
+            <h4>
+              {{ item.title }} / <span>{{ item.engTit }}</span>
+            </h4>
+            <div class="bottom">
+              <div>{{ item.description }}</div>
+            </div>
+          </div>
           <el-button
             class="edit-btn"
             type="primary"
             :icon="Edit"
             circle
-            @click="() => showHighDialog(item)"
+            @click="() => showRelativeDialog(item)"
           />
           <el-button
             class="del-btn"
             type="danger"
             :icon="Delete"
             circle
-            @click="() => deleteHighlight(item.id)"
+            @click="() => deleteRelative(item.id)"
           />
         </el-card>
       </div>
@@ -75,7 +89,9 @@
 
     <div class="box custom-box">
       <h3>合作客户 设置</h3>
-      <el-button type="primary" @click="showCustomDialog">添加客户</el-button>
+      <el-button class="btn" type="primary" @click="showCustomDialog"
+        >添加客户</el-button
+      >
       <div class="horizon-box">
         <el-card
           v-for="item in currentCustoms"
@@ -113,7 +129,7 @@
 
     <div class="box">
       <h3>优势内容 设置</h3>
-      <el-button type="primary" @click="showAdvantageDialog"
+      <el-button class="btn" type="primary" @click="showAdvantageDialog"
         >添加优势</el-button
       >
       <div class="horizon-box">
@@ -150,48 +166,11 @@
       </div>
     </div>
 
-    <div class="box">
-      <h3>相关服务 设置</h3>
-      <el-button type="primary" @click="showRelativeDialog">添加优势</el-button>
-      <div class="horizon-box">
-        <el-card
-          v-for="item in currentRelatives"
-          :body-style="{ padding: '0px' }"
-          :key="item.id"
-          class="horizon-item"
-        >
-          <div class="img-box">
-            <img :src="item.img" class="image" />
-          </div>
-          <div style="padding: 14px">
-            <h4>
-              {{ item.title }} / <span>{{ item.engTit }}</span>
-            </h4>
-            <div class="bottom">
-              <div>{{ item.description }}</div>
-            </div>
-          </div>
-          <el-button
-            class="edit-btn"
-            type="primary"
-            :icon="Edit"
-            circle
-            @click="() => showRelativeDialog(item)"
-          />
-          <el-button
-            class="del-btn"
-            type="danger"
-            :icon="Delete"
-            circle
-            @click="() => deleteRelative(item.id)"
-          />
-        </el-card>
-      </div>
-    </div>
-
     <div class="box news-box">
       <h3>新闻动态 设置</h3>
-      <el-button type="primary" @click="showNewsDialog">添加新闻</el-button>
+      <el-button class="btn" type="primary" @click="showNewsDialog"
+        >添加新闻</el-button
+      >
       <div class="horizon-box">
         <el-card class="box-card horizon-item" v-for="item in currentNewss">
           <h4>{{ item.title }}</h4>
@@ -226,36 +205,37 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElLoading } from "element-plus";
 import { Delete, Edit } from "@element-plus/icons-vue";
 import {
   apiDeleteAdvantage,
   apiDeleteBanner,
   apiDeleteCustom,
-  apiDeleteHighlightBusi,
   apiDeleteNews,
   apiDeleteRelative,
   apiGetAdvantage,
   apiGetBanner,
   apiGetCustom,
-  apiGetHighlightBusi,
   apiGetNews,
   apiGetRelative,
 } from "../../api/index";
 import BannerDialog from "./banner.vue";
-import HighlightDialog from "./highlightBusi.vue";
 import CustomDialog from "./custom.vue";
 import AdvantageDialog from "./advantage.vue";
 import RelativeServiceDialog from "./relative.vue";
 import NewsDialog from "./news.vue";
 
 const BannerRef = ref<any>(null);
-const HighRef = ref<any>(null);
 const CustomRef = ref<any>(null);
 const AdvantageRef = ref<any>(null);
 const RelativeRef = ref<any>(null);
 const NewsRef = ref<any>(null);
 
+const loadOpt = {
+  lock: true,
+  text: "Loading",
+  background: "rgba(0, 0, 0, 0.7)",
+};
 const currentBanners = ref<
   {
     id: "";
@@ -270,55 +250,61 @@ const showBannerDialog = () => {
   BannerRef.value.show();
 };
 const getBanner = () => {
-  apiGetBanner().then((res) => {
+  return apiGetBanner().then((res) => {
     if (res.code >= 0) {
       currentBanners.value = res.data;
     }
   });
 };
 const deleteBanner = (id: string) => {
+  const loading = ElLoading.service(loadOpt);
   apiDeleteBanner({ id }).then((res) => {
     if (res.code >= 0) {
       ElMessage.success("成功删除一项banner");
       getBanner();
     }
+  }).finally(() => {
+    loading.close()
   });
 };
 const BannerSuc = () => {
-  getBanner();
+  const loading = ElLoading.service(loadOpt);
+  getBanner().finally(() => {
+    loading.close()
+  });
 };
 
 // 亮点业务
-const highlights = ref<
-  {
-    id: string;
-    title: string;
-    engTit: string;
-    description: string;
-    ifShow: string;
-  }[]
->([]);
-const showHighDialog = (info?: any) => {
-  HighRef.value.show(info instanceof Event ? null : info);
-};
-const getHighlight = () => {
-  apiGetHighlightBusi().then((res) => {
-    if (res.code >= 0) {
-      highlights.value = res.data;
-    }
-  });
-};
-const deleteHighlight = (id: string) => {
-  apiDeleteHighlightBusi({ id }).then((res) => {
-    if (res.code >= 0) {
-      ElMessage.success("成功删除一项banner");
-      getHighlight();
-    }
-  });
-};
-const HighSuc = () => {
-  getHighlight();
-};
+// const highlights = ref<
+//   {
+//     id: string;
+//     title: string;
+//     engTit: string;
+//     description: string;
+//     ifShow: string;
+//   }[]
+// >([]);
+// const showHighDialog = (info?: any) => {
+//   HighRef.value.show(info instanceof Event ? null : info);
+// };
+// const getHighlight = () => {
+//   apiGetHighlightBusi().then((res) => {
+//     if (res.code >= 0) {
+//       highlights.value = res.data;
+//     }
+//   });
+// };
+// const deleteHighlight = (id: string) => {
+//   apiDeleteHighlightBusi({ id }).then((res) => {
+//     if (res.code >= 0) {
+//       ElMessage.success("成功删除一项banner");
+//       getHighlight();
+//     }
+//   });
+// };
+// const HighSuc = () => {
+//   getHighlight();
+// };
 
 // 合作客户
 const currentCustoms = ref<
@@ -334,22 +320,28 @@ const showCustomDialog = (info?: any) => {
   CustomRef.value.show(info instanceof Event ? null : info);
 };
 const getCustom = () => {
-  apiGetCustom().then((res) => {
+  return apiGetCustom().then((res) => {
     if (res.code >= 0) {
       currentCustoms.value = res.data;
     }
   });
 };
 const deleteCustom = (id: string) => {
+  const loading = ElLoading.service(loadOpt);
   apiDeleteCustom({ id }).then((res) => {
     if (res.code >= 0) {
       ElMessage.success("成功删除一项banner");
       getCustom();
     }
+  }).finally(() => {
+    loading.close()
   });
 };
 const CustomSuc = () => {
-  getCustom();
+  const loading = ElLoading.service(loadOpt);
+  getCustom().finally(() => {
+    loading.close()
+  });
 };
 
 // 优势内容
@@ -365,22 +357,28 @@ const showAdvantageDialog = (info?: any) => {
   AdvantageRef.value.show(info instanceof Event ? null : info);
 };
 const getAdvantage = () => {
-  apiGetAdvantage().then((res) => {
+  return apiGetAdvantage().then((res) => {
     if (res.code >= 0) {
       currentAdvantages.value = res.data;
     }
   });
 };
 const deleteAdvantage = (id: string) => {
+  const loading = ElLoading.service(loadOpt);
   apiDeleteAdvantage({ id }).then((res) => {
     if (res.code >= 0) {
       ElMessage.success("成功删除一项banner");
       getAdvantage();
     }
+  }).finally(() => {
+    loading.close()
   });
 };
 const AdvantageSuc = () => {
-  getAdvantage();
+  const loading = ElLoading.service(loadOpt);
+  getAdvantage().finally(() => {
+    loading.close()
+  });
 };
 
 // 优势内容
@@ -397,22 +395,28 @@ const showRelativeDialog = (info?: any) => {
   RelativeRef.value.show(info instanceof Event ? null : info);
 };
 const getRelative = () => {
-  apiGetRelative().then((res) => {
+  return apiGetRelative().then((res) => {
     if (res.code >= 0) {
       currentRelatives.value = res.data;
     }
   });
 };
 const deleteRelative = (id: string) => {
+  const loading = ElLoading.service(loadOpt);
   apiDeleteRelative({ id }).then((res) => {
     if (res.code >= 0) {
       ElMessage.success("成功删除一项banner");
       getRelative();
     }
+  }).finally(() => {
+    loading.close()
   });
 };
 const RelativeSuc = () => {
-  getRelative();
+  const loading = ElLoading.service(loadOpt);
+  getRelative().finally(() => {
+    loading.close()
+  });
 };
 
 // 新闻动态
@@ -428,31 +432,41 @@ const showNewsDialog = (info?: any) => {
   NewsRef.value.show(info instanceof Event ? null : info);
 };
 const getNews = () => {
-  apiGetNews().then((res) => {
+  return apiGetNews().then((res) => {
     if (res.code >= 0) {
       currentNewss.value = res.data;
     }
   });
 };
 const deleteNews = (id: string) => {
+  const loading = ElLoading.service(loadOpt);
   apiDeleteNews({ id }).then((res) => {
     if (res.code >= 0) {
       ElMessage.success("成功删除一项banner");
       getNews();
     }
+  }).finally(() => {
+    loading.close()
   });
 };
 const NewsSuc = () => {
-  getNews();
+  const loading = ElLoading.service(loadOpt);
+  getNews().finally(() => {
+    loading.close()
+  });
 };
 
 onMounted(() => {
-  getBanner();
-  getHighlight();
-  getCustom();
-  getAdvantage();
-  getRelative();
-  getNews();
+  const loading = ElLoading.service(loadOpt);
+  Promise.all([
+    getBanner(),
+    getCustom(),
+    getAdvantage(),
+    getRelative(),
+    getNews(),
+  ]).finally(() => {
+    loading.close()
+  })
 });
 </script>
 
@@ -463,6 +477,12 @@ onMounted(() => {
 }
 .box {
   margin-bottom: 20px;
+}
+.box h3 {
+  margin-bottom: 10px;
+}
+.box .btn {
+  margin-bottom: 10px;
 }
 .horizon-box {
   display: flex;

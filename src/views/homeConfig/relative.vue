@@ -37,10 +37,12 @@
         <el-button type="primary" @click="submit"> Confirm </el-button>
       </span>
     </template>
+    <Editor></Editor>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
+import Editor from '../../components/editor.vue';
 import { ElMessage, UploadProps } from "element-plus";
 import { reactive, ref, defineEmits, defineExpose } from "vue";
 import { apiAddRelative, apiSetRelative } from "../../api";
@@ -70,6 +72,7 @@ const show = (info?: any) => {
     Object.assign(form, {
       ...info,
       ifShow: info.ifShow === "1" ? true : false,
+      img: new URL(info.img).pathname,
     });
     imageUrl.value = info.img;
     modifyId.value = info.id;

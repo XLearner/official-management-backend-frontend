@@ -2,6 +2,7 @@ import { AxiosResponse } from "axios";
 import request from "../utils/request";
 import qs from "qs";
 const baseURL = "http://43.139.70.11:8903";
+// const baseURL = "http://localhost:8903"
 
 const filterRes = (res: AxiosResponse<any, any>) => res.status === 200 && res.data
 

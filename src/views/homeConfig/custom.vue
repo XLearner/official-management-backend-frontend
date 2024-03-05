@@ -65,6 +65,7 @@ const show = (info?: any) => {
   if (info) {
     Object.assign(form, {
       ...info,
+      logo: new URL(info.logo).pathname,
       ifShow: info.ifShow === "1" ? true : false,
     });
     imageUrl.value = info.logo
@@ -98,7 +99,6 @@ const handleAvatarSuccess: UploadProps["onSuccess"] = (
 };
 const submit = () => {
   if (modifyId.value > 0) {
-    // const logourl = new URL(form.logo).pathname;
     apiSetCustom({
       id: form.id,
       logo: form.logo,

@@ -8,7 +8,7 @@
       <el-form-item label="公司logo" label-width="120px">
         <el-upload
           class="avatar-uploader"
-          action="http://43.139.70.11:8903/v1/upload"
+          :action="uploadImgUrl"
           name="files"
           :headers="imgHeader"
           :show-file-list="false"
@@ -30,6 +30,19 @@
       <el-form-item label="简介">
         <el-input v-model="form.description" type="textarea" :rows="5" />
       </el-form-item>
+      <el-form-item label="宣传图片" label-width="120px">
+        <el-upload
+          class="avatar-uploader"
+          :action="uploadImgUrl"
+          name="files"
+          :headers="imgHeader"
+          :show-file-list="false"
+          :on-success="handlePubSuccess"
+        >
+          <img v-if="pubImageUrl" :src="pubImageUrl" class="avatar" />
+          <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+        </el-upload>
+      </el-form-item>
       <el-form-item label="copyright">
         <el-input v-model="form.copyright" />
       </el-form-item>
@@ -42,12 +55,15 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage, FormInstance, UploadProps } from "element-plus";
+import { ElMessage, ElLoading, UploadProps } from "element-plus";
 import { onMounted, reactive, ref } from "vue";
 import { apiGetBaseInfo, apiSaveBaseInfo } from "../api";
 
 const FormRef = ref<any>(null);
 const imageUrl = ref("");
+const pubImageUrl = ref("");
+// const uploadImgUrl = "http://43.139.70.11:8903/v1/upload";
+const uploadImgUrl = "http://localhost:8903/v1/upload";
 const imgHeader = ref({
   zhtoken: localStorage.getItem("zh_token"),
 });
@@ -60,15 +76,19 @@ const form = reactive({
   tel: "",
   email: "",
   copyright: "",
+  descImg: "",
   description: "",
 });
+let loading: any = null;
 
 const getBaseInfo = () => {
   apiGetBaseInfo("中瀚").then((res) => {
     if (res.code >= 0) {
-      console.log(res);
       Object.assign(form, res.data);
       imageUrl.value = form.logo;
+      pubImageUrl.value = form.descImg;
+      form.logo = new URL(form.logo).pathname;
+      form.descImg = new URL(form.descImg).pathname;
     }
   });
 };
@@ -81,29 +101,33 @@ const handleAvatarSuccess: UploadProps["onSuccess"] = (
     form.logo = response.data.imgurl;
   }
 };
-const submitForm = () => {
-  apiSaveBaseInfo({
-    ...form
-  }).then((res) => {
-    if (res.code >= 0) {
-      ElMessage.success("更新成功");
-      getBaseInfo();
-    } else {
-      ElMessage.error(res.msg);
-    }
-  });
+const handlePubSuccess: UploadProps["onSuccess"] = (response, uploadFile) => {
+  pubImageUrl.value = URL.createObjectURL(uploadFile.raw!);
+  if (response.code >= 0) {
+    form.descImg = response.data.imgurl;
+  }
 };
-// const resetForm = (formEl?: FormInstance) => {
-//   if (!formEl) return;
-//   formEl.resetFields();
-//   form.name = "";
-//   form.logo = "";
-//   form.address = "";
-//   form.email = "";
-//   form.tel = "";
-//   form.copyright = "";
-//   form.description = "";
-// };
+const submitForm = () => {
+  loading = ElLoading.service({
+    lock: true,
+    text: "Loading",
+    background: "rgba(0, 0, 0, 0.7)",
+  });
+  apiSaveBaseInfo({
+    ...form,
+  })
+    .then((res) => {
+      if (res.code >= 0) {
+        ElMessage.success("更新成功");
+        getBaseInfo();
+      } else {
+        ElMessage.error(res.msg);
+      }
+    })
+    .finally(() => {
+      loading.close();
+    });
+};
 
 onMounted(() => {
   getBaseInfo();
