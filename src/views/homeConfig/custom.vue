@@ -8,7 +8,7 @@
       <el-form-item label="图片" :label-width="formLabelWidth">
         <el-upload
           class="avatar-uploader"
-          action="http://43.139.70.11:8903/v1/upload"
+          :action="uploadImgUrl"
           name="files"
           :headers="imgHeader"
           :show-file-list="false"
@@ -40,8 +40,9 @@
 <script setup lang="ts">
 import { ElMessage, UploadProps } from "element-plus";
 import { reactive, ref, defineEmits, defineExpose } from "vue";
-import { apiAddCustom, apiSetCustom } from "../../api";
+import { apiAddCustom, apiSetCustom, baseURL } from "../../api";
 
+const uploadImgUrl = `${baseURL}/v1/upload`;
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
 const imageUrl = ref("");

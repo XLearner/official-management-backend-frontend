@@ -48,6 +48,18 @@ const routes: RouteRecordRaw[] = [
           ),
       },
       {
+        path: "/services",
+        name: "services",
+        meta: {
+          title: "产品服务",
+          permiss: "8",
+        },
+        component: () =>
+          import(
+            /* webpackChunkName: "homeconfig" */ "../views/service/index.vue"
+          ),
+      },
+      {
         path: "/recruit",
         name: "recruit",
         meta: {

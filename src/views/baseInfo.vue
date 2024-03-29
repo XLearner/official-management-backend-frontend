@@ -57,13 +57,13 @@
 <script setup lang="ts">
 import { ElMessage, ElLoading, UploadProps } from "element-plus";
 import { onMounted, reactive, ref } from "vue";
-import { apiGetBaseInfo, apiSaveBaseInfo } from "../api";
+import { baseURL, apiGetBaseInfo, apiSaveBaseInfo } from "../api";
 
 const FormRef = ref<any>(null);
 const imageUrl = ref("");
 const pubImageUrl = ref("");
-// const uploadImgUrl = "http://43.139.70.11:8903/v1/upload";
-const uploadImgUrl = "http://localhost:8903/v1/upload";
+const uploadImgUrl = `${baseURL}/v1/upload`;
+// const uploadImgUrl = "http://localhost:8903/v1/upload";
 const imgHeader = ref({
   zhtoken: localStorage.getItem("zh_token"),
 });

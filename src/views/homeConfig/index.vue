@@ -2,10 +2,6 @@
   <div class="container">
     <BannerDialog ref="BannerRef" @success="BannerSuc"></BannerDialog>
     <CustomDialog ref="CustomRef" @success="CustomSuc"></CustomDialog>
-    <RelativeServiceDialog
-      ref="RelativeRef"
-      @success="RelativeSuc"
-    ></RelativeServiceDialog>
     <AdvantageDialog
       ref="AdvantageRef"
       @success="AdvantageSuc"
@@ -46,46 +42,6 @@
       </div>
     </div>
 
-    <div class="box">
-      <h3>相关服务 设置</h3>
-      <el-button class="btn" type="primary" @click="showRelativeDialog"
-        >添加服务</el-button
-      >
-      <div class="horizon-box">
-        <el-card
-          v-for="item in currentRelatives"
-          :body-style="{ padding: '0px' }"
-          :key="item.id"
-          class="horizon-item"
-        >
-          <div class="img-box">
-            <img :src="item.img" class="image" />
-          </div>
-          <div style="padding: 14px">
-            <h4>
-              {{ item.title }} / <span>{{ item.engTit }}</span>
-            </h4>
-            <div class="bottom">
-              <div>{{ item.description }}</div>
-            </div>
-          </div>
-          <el-button
-            class="edit-btn"
-            type="primary"
-            :icon="Edit"
-            circle
-            @click="() => showRelativeDialog(item)"
-          />
-          <el-button
-            class="del-btn"
-            type="danger"
-            :icon="Delete"
-            circle
-            @click="() => deleteRelative(item.id)"
-          />
-        </el-card>
-      </div>
-    </div>
 
     <div class="box custom-box">
       <h3>合作客户 设置</h3>
@@ -222,13 +178,11 @@ import {
 import BannerDialog from "./banner.vue";
 import CustomDialog from "./custom.vue";
 import AdvantageDialog from "./advantage.vue";
-import RelativeServiceDialog from "./relative.vue";
 import NewsDialog from "./news.vue";
 
 const BannerRef = ref<any>(null);
 const CustomRef = ref<any>(null);
 const AdvantageRef = ref<any>(null);
-const RelativeRef = ref<any>(null);
 const NewsRef = ref<any>(null);
 
 const loadOpt = {
@@ -381,43 +335,6 @@ const AdvantageSuc = () => {
   });
 };
 
-// 优势内容
-const currentRelatives = ref<
-  {
-    id: string;
-    img: string;
-    title: string;
-    engTit: string;
-    description: string;
-  }[]
->([]);
-const showRelativeDialog = (info?: any) => {
-  RelativeRef.value.show(info instanceof Event ? null : info);
-};
-const getRelative = () => {
-  return apiGetRelative().then((res) => {
-    if (res.code >= 0) {
-      currentRelatives.value = res.data;
-    }
-  });
-};
-const deleteRelative = (id: string) => {
-  const loading = ElLoading.service(loadOpt);
-  apiDeleteRelative({ id }).then((res) => {
-    if (res.code >= 0) {
-      ElMessage.success("成功删除一项banner");
-      getRelative();
-    }
-  }).finally(() => {
-    loading.close()
-  });
-};
-const RelativeSuc = () => {
-  const loading = ElLoading.service(loadOpt);
-  getRelative().finally(() => {
-    loading.close()
-  });
-};
 
 // 新闻动态
 const currentNewss = ref<
@@ -462,7 +379,6 @@ onMounted(() => {
     getBanner(),
     getCustom(),
     getAdvantage(),
-    getRelative(),
     getNews(),
   ]).finally(() => {
     loading.close()

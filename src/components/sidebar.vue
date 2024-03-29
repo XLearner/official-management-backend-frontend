@@ -79,6 +79,11 @@ const items: any = [
                 permiss: '8',
             },
             {
+                index: '/services',
+                title: '产品服务',
+                permiss: '8',
+            },
+            {
                 index: '/recruit',
                 title: '招聘内容',
                 permiss: '8',

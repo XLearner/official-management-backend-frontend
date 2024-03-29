@@ -1,21 +1,13 @@
 <template>
-  <el-dialog
-    v-model="dialogFormVisible"
-    title="新增相关服务"
-    :before-close="beforeClose"
-  >
+  <el-dialog v-model="dialogFormVisible" title="新增相关服务" :before-close="beforeClose" :width="800">
     <el-form :model="form">
       <el-form-item label="图片" :label-width="formLabelWidth">
-        <el-upload
-          class="avatar-uploader"
-          action="http://43.139.70.11:8903/v1/upload"
-          name="files"
-          :headers="imgHeader"
-          :show-file-list="false"
-          :on-success="handleAvatarSuccess"
-        >
+        <el-upload class="avatar-uploader" :action="uploadImgUrl" name="files" :headers="imgHeader"
+          :show-file-list="false" :on-success="handleAvatarSuccess">
           <img v-if="imageUrl" :src="imageUrl" class="avatar" />
-          <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+          <el-icon v-else class="avatar-uploader-icon">
+            <Plus />
+          </el-icon>
         </el-upload>
       </el-form-item>
       <el-form-item label="标题" :label-width="formLabelWidth">
@@ -24,11 +16,12 @@
       <el-form-item label="英文" :label-width="formLabelWidth">
         <el-input v-model="form.engTit"></el-input>
       </el-form-item>
-      <el-form-item label="描述" :label-width="formLabelWidth">
-        <el-input v-model="form.description" type="textarea"></el-input>
-      </el-form-item>
       <el-form-item label="是否展示" :label-width="formLabelWidth">
         <el-switch v-model="form.ifShow" />
+      </el-form-item>
+      <el-form-item label="描述" :label-width="formLabelWidth">
+        <!-- <el-input v-model="form.description" type="textarea"></el-input> -->
+        <Editor ref="editorRef"></Editor>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -37,19 +30,21 @@
         <el-button type="primary" @click="submit"> Confirm </el-button>
       </span>
     </template>
-    <Editor></Editor>
+    <!-- <Editor></Editor> -->
   </el-dialog>
 </template>
 
 <script setup lang="ts">
 import Editor from '../../components/editor.vue';
 import { ElMessage, UploadProps } from "element-plus";
-import { reactive, ref, defineEmits, defineExpose } from "vue";
-import { apiAddRelative, apiSetRelative } from "../../api";
+import { reactive, ref, defineEmits, defineExpose, onMounted } from "vue";
+import { apiAddRelative, apiSetRelative, baseURL } from "../../api";
 
+const uploadImgUrl = `${baseURL}/v1/upload`;
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
 const imageUrl = ref("");
+const editorRef = ref(null);
 const imgHeader = ref({
   zhtoken: localStorage.getItem("zh_token"),
 });
@@ -63,7 +58,6 @@ const form = reactive({
   description: "",
   ifShow: true,
 });
-
 const emits = defineEmits(["success"]);
 
 const show = (info?: any) => {
@@ -76,11 +70,18 @@ const show = (info?: any) => {
     });
     imageUrl.value = info.img;
     modifyId.value = info.id;
+
+    // console.log((editorRef as any).value, (editorRef as any).value.setHtml);
+    // (editorRef as any).value.setHtml(form.description);
+    setTimeout(() => {
+      (editorRef as any).value.setHtml(form.description);
+    }, 100)
   }
 };
 const close = () => {
   dialogFormVisible.value = false;
   clearDialog();
+  (editorRef as any).value.clear();
 };
 const beforeClose = (done: () => void) => {
   clearDialog();
@@ -106,6 +107,7 @@ const handleAvatarSuccess: UploadProps["onSuccess"] = (
   }
 };
 const submit = () => {
+  const description = (editorRef as any).value.getHtml();
   if (modifyId.value > 0) {
     // const imgurl = new URL(form.img).pathname;
     apiSetRelative({
@@ -113,7 +115,7 @@ const submit = () => {
       img: form.img,
       title: form.title,
       engTit: form.engTit,
-      description: form.description,
+      description: description,
       ifShow: form.ifShow ? "1" : "0",
     }).then((res) => {
       if (res.code === 0) {
@@ -127,6 +129,7 @@ const submit = () => {
   } else {
     apiAddRelative({
       ...form,
+      description,
       ifShow: form.ifShow ? "1" : "0",
     }).then((res) => {
       if (res.code >= 0) {
