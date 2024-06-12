@@ -1,14 +1,14 @@
 <template>
   <el-dialog
     v-model="dialogFormVisible"
-    title="新增相关服务"
+    title="新增客户"
     :before-close="beforeClose"
   >
     <el-form :model="form">
       <el-form-item label="图片" :label-width="formLabelWidth">
         <el-upload
           class="avatar-uploader"
-          action="http://43.139.70.11:8903/v1/upload"
+          :action="uploadImgUrl"
           name="files"
           :headers="imgHeader"
           :show-file-list="false"
@@ -21,9 +21,6 @@
       <el-form-item label="标题" :label-width="formLabelWidth">
         <el-input v-model="form.title"></el-input>
       </el-form-item>
-      <el-form-item label="英文" :label-width="formLabelWidth">
-        <el-input v-model="form.engTit"></el-input>
-      </el-form-item>
       <el-form-item label="描述" :label-width="formLabelWidth">
         <el-input v-model="form.description" type="textarea"></el-input>
       </el-form-item>
@@ -33,20 +30,20 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="close">Cancel</el-button>
-        <el-button type="primary" @click="submit"> Confirm </el-button>
+        <el-button @click="close">取消</el-button>
+        <el-button type="primary" @click="submit"> 保存 </el-button>
       </span>
     </template>
-    <Editor></Editor>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import Editor from '../../components/editor.vue';
+// @ts-ignore
 import { ElMessage, UploadProps } from "element-plus";
 import { reactive, ref, defineEmits, defineExpose } from "vue";
-import { apiAddRelative, apiSetRelative } from "../../api";
+import { apiAddCustom, apiSetCustom, baseURL } from "../../api";
 
+const uploadImgUrl = `${baseURL}/v1/upload`;
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
 const imageUrl = ref("");
@@ -57,9 +54,8 @@ const modifyId = ref(0);
 
 const form = reactive({
   id: "",
-  img: "",
+  logo: "",
   title: "",
-  engTit: "",
   description: "",
   ifShow: true,
 });
@@ -71,10 +67,10 @@ const show = (info?: any) => {
   if (info) {
     Object.assign(form, {
       ...info,
+      logo: new URL(info.logo).pathname,
       ifShow: info.ifShow === "1" ? true : false,
-      img: new URL(info.img).pathname,
     });
-    imageUrl.value = info.img;
+    imageUrl.value = info.logo
     modifyId.value = info.id;
   }
 };
@@ -89,30 +85,26 @@ const beforeClose = (done: () => void) => {
 
 const clearDialog = () => {
   form.title = "";
-  form.engTit = "";
   form.description = "";
-  form.img = "";
-  form.ifShow = true;
+  form.logo = "";
   imageUrl.value = "";
   modifyId.value = 0;
 };
 const handleAvatarSuccess: UploadProps["onSuccess"] = (
-  response,
-  uploadFile
+  response: any,
+  uploadFile: any
 ) => {
   imageUrl.value = URL.createObjectURL(uploadFile.raw!);
   if (response.code >= 0) {
-    form.img = response.data.imgurl;
+    form.logo = response.data.imgurl;
   }
 };
 const submit = () => {
   if (modifyId.value > 0) {
-    // const imgurl = new URL(form.img).pathname;
-    apiSetRelative({
+    apiSetCustom({
       id: form.id,
-      img: form.img,
+      logo: form.logo,
       title: form.title,
-      engTit: form.engTit,
       description: form.description,
       ifShow: form.ifShow ? "1" : "0",
     }).then((res) => {
@@ -125,7 +117,7 @@ const submit = () => {
       }
     });
   } else {
-    apiAddRelative({
+    apiAddCustom({
       ...form,
       ifShow: form.ifShow ? "1" : "0",
     }).then((res) => {

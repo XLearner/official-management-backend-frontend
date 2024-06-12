@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="dialogFormVisible"
-    title="新增客户"
+    title="新增优势"
     :before-close="beforeClose"
   >
     <el-form :model="form">
@@ -18,7 +18,7 @@
           <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
         </el-upload>
       </el-form-item>
-      <el-form-item label="标题" :label-width="formLabelWidth">
+      <el-form-item label="核心优势" :label-width="formLabelWidth">
         <el-input v-model="form.title"></el-input>
       </el-form-item>
       <el-form-item label="描述" :label-width="formLabelWidth">
@@ -38,9 +38,10 @@
 </template>
 
 <script setup lang="ts">
+// @ts-ignore
 import { ElMessage, UploadProps } from "element-plus";
 import { reactive, ref, defineEmits, defineExpose } from "vue";
-import { apiAddCustom, apiSetCustom } from "../../api";
+import { apiAddAdvantage, apiSetAdvantage } from "../../api";
 
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
@@ -52,7 +53,7 @@ const modifyId = ref(0);
 
 const form = reactive({
   id: "",
-  logo: "",
+  img: "",
   title: "",
   description: "",
   ifShow: true,
@@ -65,10 +66,10 @@ const show = (info?: any) => {
   if (info) {
     Object.assign(form, {
       ...info,
-      logo: new URL(info.logo).pathname,
+      img: new URL(info.img).pathname,
       ifShow: info.ifShow === "1" ? true : false,
     });
-    imageUrl.value = info.logo
+    imageUrl.value = info.img
     modifyId.value = info.id;
   }
 };
@@ -82,9 +83,9 @@ const beforeClose = (done: () => void) => {
 };
 
 const clearDialog = () => {
-  form.title = "";
   form.description = "";
-  form.logo = "";
+  form.img = "";
+  form.title = "";
   imageUrl.value = "";
   modifyId.value = 0;
 };
@@ -94,14 +95,14 @@ const handleAvatarSuccess: UploadProps["onSuccess"] = (
 ) => {
   imageUrl.value = URL.createObjectURL(uploadFile.raw!);
   if (response.code >= 0) {
-    form.logo = response.data.imgurl;
+    form.img = response.data.imgurl;
   }
 };
 const submit = () => {
   if (modifyId.value > 0) {
-    apiSetCustom({
+    apiSetAdvantage({
       id: form.id,
-      logo: form.logo,
+      img: form.img,
       title: form.title,
       description: form.description,
       ifShow: form.ifShow ? "1" : "0",
@@ -115,7 +116,7 @@ const submit = () => {
       }
     });
   } else {
-    apiAddCustom({
+    apiAddAdvantage({
       ...form,
       ifShow: form.ifShow ? "1" : "0",
     }).then((res) => {

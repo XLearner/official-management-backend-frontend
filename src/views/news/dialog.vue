@@ -1,21 +1,18 @@
 <template>
   <el-dialog
     v-model="dialogFormVisible"
-    title="新增亮点"
+    title="新增新闻"
     :before-close="beforeClose"
   >
     <el-form :model="form">
       <el-form-item label="标题" :label-width="formLabelWidth">
         <el-input v-model="form.title"></el-input>
       </el-form-item>
-      <el-form-item label="英文标题" :label-width="formLabelWidth">
-        <el-input v-model="form.engTit"></el-input>
+      <el-form-item label="时间" :label-width="formLabelWidth">
+        <el-input v-model="form.date"></el-input>
       </el-form-item>
       <el-form-item label="描述" :label-width="formLabelWidth">
         <el-input v-model="form.description" type="textarea"></el-input>
-      </el-form-item>
-      <el-form-item label="是否展示" :label-width="formLabelWidth">
-        <el-switch v-model="form.ifShow" />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -28,12 +25,10 @@
 </template>
 
 <script setup lang="ts">
+// @ts-ignore
 import { ElMessage, UploadProps } from "element-plus";
 import { reactive, ref, defineExpose } from "vue";
-import {
-  apiAddHighlightBusi,
-  apiSetHighlightBusi,
-} from "../../api";
+import { apiAddNews, apiSetNews } from "../../api";
 
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
@@ -41,9 +36,8 @@ const dialogFormVisible = ref(false);
 const form = reactive({
   id: "",
   title: "",
-  engTit: "",
   description: "",
-  ifShow: true,
+  date: "",
 });
 const modifyId = ref(0);
 
@@ -54,35 +48,32 @@ const show = (info?: any) => {
   if (info) {
     Object.assign(form, {
       ...info,
-      ifShow: info.ifShow === "1" ? true : false,
     });
     modifyId.value = info.id;
   }
 };
 const beforeClose = (done: () => void) => {
   clearDialog();
-  done()
+  done();
 };
 const close = () => {
   dialogFormVisible.value = false;
-  modifyId.value = 0
+  modifyId.value = 0;
   clearDialog();
 };
 
 const clearDialog = () => {
   form.title = "";
-  form.engTit = "";
+  form.date = "";
   form.description = "";
-  form.ifShow = true;
 };
 const submit = () => {
   if (modifyId.value > 0) {
-    apiSetHighlightBusi({
+    apiSetNews({
       id: form.id,
       title: form.title,
-      engTit: form.engTit,
+      date: form.date,
       description: form.description,
-      ifShow: form.ifShow ? "1" : "0",
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success("更新成功");
@@ -93,9 +84,8 @@ const submit = () => {
       }
     });
   } else {
-    apiAddHighlightBusi({
+    apiAddNews({
       ...form,
-      ifShow: form.ifShow ? "1" : "0",
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success("更新成功");

@@ -36,15 +36,63 @@ const routes: RouteRecordRaw[] = [
           ),
       },
       {
-        path: "/config-home",
-        name: "homeconfig",
+        path: "/advantage",
+        name: "advantage",
         meta: {
-          title: "首页设置",
+          title: "优势内容",
           permiss: "8",
         },
         component: () =>
           import(
-            /* webpackChunkName: "homeconfig" */ "../views/homeConfig/index.vue"
+            /* webpackChunkName: "advantage" */ "../views/advantage/index.vue"
+          ),
+      },
+      {
+        path: "/banner",
+        name: "banner",
+        meta: {
+          title: "banner设置",
+          permiss: "8",
+        },
+        component: () =>
+          import(
+            /* webpackChunkName: "banner" */ "../views/banner/index.vue"
+          ),
+      },
+      {
+        path: "/customs",
+        name: "customs",
+        meta: {
+          title: "合作客户",
+          permiss: "8",
+        },
+        component: () =>
+          import(
+            /* webpackChunkName: "customs" */ "../views/customs/index.vue"
+          ),
+      },
+      {
+        path: "/services",
+        name: "services",
+        meta: {
+          title: "产品服务",
+          permiss: "8",
+        },
+        component: () =>
+          import(
+            /* webpackChunkName: "service" */ "../views/service/index.vue"
+          ),
+      },
+      {
+        path: "/news",
+        name: "news",
+        meta: {
+          title: "新闻动态",
+          permiss: "8",
+        },
+        component: () =>
+          import(
+            /* webpackChunkName: "news" */ "../views/news/index.vue"
           ),
       },
       {

@@ -12,14 +12,14 @@
         class="horizon-item"
       >
         <h3 class="name">{{ item.name }}</h3>
-        <p class="time">
+        <!-- <p class="time">
           {{
             `${item.date.slice(0, 4)}-${item.date.slice(
               4,
               6
             )}-${item.date.slice(6)}`
           }}
-        </p>
+        </p> -->
         <div class="job-desc">
           <h4>岗位描述</h4>
           <div class="txt">

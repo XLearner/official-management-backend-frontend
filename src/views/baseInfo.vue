@@ -47,7 +47,7 @@
         <el-input v-model="form.copyright" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitForm()"> Create </el-button>
+        <el-button type="primary" @click="submitForm()"> 保存 </el-button>
         <!-- <el-button @click="resetForm(FormRef)">Reset</el-button> -->
       </el-form-item>
     </el-form>
@@ -57,13 +57,13 @@
 <script setup lang="ts">
 import { ElMessage, ElLoading, UploadProps } from "element-plus";
 import { onMounted, reactive, ref } from "vue";
-import { apiGetBaseInfo, apiSaveBaseInfo } from "../api";
+import { baseURL, apiGetBaseInfo, apiSaveBaseInfo } from "../api";
 
 const FormRef = ref<any>(null);
 const imageUrl = ref("");
 const pubImageUrl = ref("");
-// const uploadImgUrl = "http://43.139.70.11:8903/v1/upload";
-const uploadImgUrl = "http://localhost:8903/v1/upload";
+const uploadImgUrl = `${baseURL}/v1/upload`;
+// const uploadImgUrl = "http://localhost:8903/v1/upload";
 const imgHeader = ref({
   zhtoken: localStorage.getItem("zh_token"),
 });

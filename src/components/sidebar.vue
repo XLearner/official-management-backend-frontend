@@ -74,8 +74,28 @@ const items: any = [
                 permiss: '8',
             },
             {
-                index: '/config-home',
-                title: '首页',
+                index: '/banner',
+                title: 'banner设置',
+                permiss: '8',
+            },
+            {
+                index: '/customs',
+                title: '合作客户',
+                permiss: '8',
+            },
+            {
+                index: '/services',
+                title: '产品服务',
+                permiss: '8',
+            },
+            {
+                index: '/advantage',
+                title: '优势内容',
+                permiss: '8',
+            },
+            {
+                index: '/news',
+                title: '新闻动态',
                 permiss: '8',
             },
             {
