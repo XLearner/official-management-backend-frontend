@@ -47,7 +47,7 @@
         <el-input v-model="form.copyright" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitForm()"> Create </el-button>
+        <el-button type="primary" @click="submitForm()"> 保存 </el-button>
         <!-- <el-button @click="resetForm(FormRef)">Reset</el-button> -->
       </el-form-item>
     </el-form>

@@ -30,14 +30,15 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="close">Cancel</el-button>
-        <el-button type="primary" @click="submit"> Confirm </el-button>
+        <el-button @click="close">取消</el-button>
+        <el-button type="primary" @click="submit"> 保存 </el-button>
       </span>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
+// @ts-ignore
 import { ElMessage, UploadProps } from "element-plus";
 import { reactive, ref, defineEmits, defineExpose } from "vue";
 import { apiAddCustom, apiSetCustom, baseURL } from "../../api";
@@ -90,8 +91,8 @@ const clearDialog = () => {
   modifyId.value = 0;
 };
 const handleAvatarSuccess: UploadProps["onSuccess"] = (
-  response,
-  uploadFile
+  response: any,
+  uploadFile: any
 ) => {
   imageUrl.value = URL.createObjectURL(uploadFile.raw!);
   if (response.code >= 0) {

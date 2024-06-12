@@ -96,6 +96,9 @@ onMounted(() => {
 
 
 <style scoped>
+.container {
+    min-width: 1000px;
+}
 .box {
     margin-bottom: 20px;
 }
