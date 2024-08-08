@@ -64,7 +64,6 @@ const items: any = [
     },
     {
         icon: 'Calendar',
-        index: '8/home',
         title: '内容设置',
         permiss: '8',
         subs: [
