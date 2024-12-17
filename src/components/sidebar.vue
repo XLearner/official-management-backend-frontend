@@ -104,6 +104,12 @@ const items: any = [
             },
         ]
     },
+    {
+        icon: 'Track',
+        index: '/track',
+        title: '轨迹追踪',
+        permiss: '11',
+    },
     // {
     //     icon: 'Calendar',
     //     index: '1',

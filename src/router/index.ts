@@ -31,9 +31,7 @@ const routes: RouteRecordRaw[] = [
           permiss: "8",
         },
         component: () =>
-          import(
-            /* webpackChunkName: "baseinfo" */ "../views/baseInfo.vue"
-          ),
+          import(/* webpackChunkName: "baseinfo" */ "../views/baseInfo.vue"),
       },
       {
         path: "/advantage",
@@ -55,9 +53,7 @@ const routes: RouteRecordRaw[] = [
           permiss: "8",
         },
         component: () =>
-          import(
-            /* webpackChunkName: "banner" */ "../views/banner/index.vue"
-          ),
+          import(/* webpackChunkName: "banner" */ "../views/banner/index.vue"),
       },
       {
         path: "/customs",
@@ -91,9 +87,7 @@ const routes: RouteRecordRaw[] = [
           permiss: "8",
         },
         component: () =>
-          import(
-            /* webpackChunkName: "news" */ "../views/news/index.vue"
-          ),
+          import(/* webpackChunkName: "news" */ "../views/news/index.vue"),
       },
       {
         path: "/recruit",
@@ -237,6 +231,16 @@ const routes: RouteRecordRaw[] = [
         },
         component: () =>
           import(/* webpackChunkName: "import" */ "../views/import.vue"),
+      },
+      {
+        path: "/track",
+        name: "track",
+        meta: {
+          title: "轨迹追踪",
+          permiss: "11",
+        },
+        component: () =>
+          import(/* webpackChunkName: "import" */ "../views/track/index.vue"),
       },
     ],
   },
