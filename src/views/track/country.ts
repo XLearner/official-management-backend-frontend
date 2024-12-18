@@ -1,4 +1,4 @@
-export default [
+const country = [
     {
       code: 'AF',
       name: 'Afghanistan',
@@ -1180,4 +1180,10 @@ export default [
       name_zh: '津巴布韦'
     }
   ]
+
+  export const countryMap: any = {};
+  country.map(ele => {
+    countryMap[ele.code] = ele.name_zh
+  })
   
+  export default country;

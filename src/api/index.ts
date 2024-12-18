@@ -245,3 +245,32 @@ export const apiDeleteRecruit = (params: Record<string, string>) => {
     data: qs.stringify(params),
   }).then(filterRes);
 };
+
+// 轨迹信息
+export const apiGetTrack = () => {
+  return request({
+    url: `${baseURL}/v1/get/track`,
+    method: "get",
+  }).then(filterRes);
+}
+export const apiAddTrack = (params: Record<string, string>) => {
+  return request({
+    url: `${baseURL}/v1/add/track`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiSetTrack = (params: Record<string, string>) => {
+  return request({
+    url: `${baseURL}/v1/set/track`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiDeleteTrack = (params: Record<string, string>) => {
+  return request({
+    url: `${baseURL}/v1/delete/track`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};

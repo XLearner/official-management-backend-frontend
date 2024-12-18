@@ -2,7 +2,7 @@
     <el-dialog v-model="dialogFormVisible" title="轨迹编辑" :before-close="beforeClose" :width="800">
         <el-form :model="form">
             <el-form-item label="订单号" :label-width="formLabelWidth">
-                <el-input v-model="form.orderId" disabled></el-input>
+                <el-input v-model="form.id" disabled></el-input>
             </el-form-item>
             <el-form-item label="目的国" :label-width="formLabelWidth">
                 <el-select disabled v-model="form.end" filterable placeholder="目的国" size="large" style="width: 240px">
@@ -17,16 +17,16 @@
             </el-form-item>
             <div class="track-history">
                 <div class="option-box">
-                    <el-date-picker v-model="newTrack.time" type="datetime" placeholder="日期和时间"
+                    <el-date-picker v-model="newTrack.updateTime" type="datetime" placeholder="日期和时间"
                         format="YYYY/MM/DD HH:mm:ss" class="option-btn" />
                     <el-input v-model="newTrack.txt" placeholder="轨迹信息" class="option-btn"></el-input>
                     <el-button type="success" :icon="Check" circle @click="pushTrack" />
                 </div>
                 <ul class="list">
-                    <li v-for="(item, index) in trackHistory" :key="item.time">
-                        <span>{{ transTime(item.time) }} </span>
+                    <li v-for="(item, index) in trackHistory" :key="item.updateTime">
+                        <span>{{ transTime(item.updateTime) }} </span>
                         <span>{{ item.txt }}</span>
-                        <el-popconfirm title="确认删除？"  @confirm="deleteTrack(index)" >
+                        <el-popconfirm title="确认删除？" @confirm="deleteTrack(index)">
                             <template #reference>
                                 <el-button type="danger" class="del" :icon="Delete" size="small" circle />
                             </template>
@@ -41,7 +41,6 @@
                 <el-button type="primary" @click="submit"> 确认 </el-button>
             </span>
         </template>
-        <!-- <Editor></Editor> -->
     </el-dialog>
 </template>
 
@@ -52,12 +51,11 @@ import {
     Delete
 } from '@element-plus/icons-vue'
 import { reactive, ref, defineEmits, defineExpose, Ref } from "vue";
-import { apiAddNews, apiSetNews } from "../../api";
+import { apiSetTrack } from "../../api";
 import countryOption from './country';
 
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
-const modifyId = ref(0);
 const stateOptions = [
     {
         id: '0',
@@ -86,7 +84,7 @@ const stateOptions = [
 ]
 const trackHistory: any = ref([]);
 const newTrack = ref({
-    time: new Date(),
+    updateTime: new Date(),
     txt: ''
 })
 
@@ -102,9 +100,9 @@ const transDate = (date: string) => {
 }
 
 const form = reactive({
-    orderId: "",
+    id: "",
     state: '0',
-    time: new Date(),
+    updateTime: new Date(),
     end: "",
 });
 const emits = defineEmits(["success"]);
@@ -112,11 +110,12 @@ const emits = defineEmits(["success"]);
 const show = (info: any) => {
     dialogFormVisible.value = true;
     Object.assign(form, {
-        orderId: info.orderId,
+        id: info.id,
         state: info.state,
-        time: transDate(info.time),
+        updateTime: transDate(info.updateTime),
         end: info.end,
     })
+    trackHistory.value = info.history
 };
 const close = () => {
     dialogFormVisible.value = false;
@@ -128,9 +127,9 @@ const beforeClose = (done: () => void) => {
 };
 
 const clearDialog = () => {
-    form.orderId = "";
+    form.id = "";
     form.state = "0";
-    form.time = new Date();
+    form.updateTime = new Date();
     form.end = "";
 
 };
@@ -142,7 +141,7 @@ const pushTrack = () => {
     }
     trackHistory.value.push(newTrack.value)
     newTrack.value = {
-        time: new Date(),
+        updateTime: new Date(),
         txt: ''
     }
 }
@@ -152,60 +151,28 @@ const deleteTrack = (index: number) => {
 }
 
 const submit = () => {
-    // apiAddTrack({
-    //     id: form.orderId,
-    //     state: form.state,
-    //     time: form.time,
-    //     end: form.end
-    // }).then(res => {
-    //     if (res.code === 0) {
-    //         ElMessage.success('新增成功');
-    //         clearDialog();
-    //         emits("success");
-    //     } else {
-    //         ElMessage.info(res.msg);
-    //     }
-    // })
-    // if (modifyId.value > 0) {
-    //     // const imgurl = new URL(form.outImg).pathname;
-    //     apiSetNews({
-    //         id: form.orderId,
-    //         outImg: form.outImg,
-    //         title: form.title,
-    //         time: transTime(form.time),
-    //         content: content,
-    //     }).then((res) => {
-    //         if (res.code === 0) {
-    //             ElMessage.success("更新成功");
-    //             close();
-    //             emits("success");
-    //         } else {
-    //             ElMessage.info(res.msg);
-    //         }
-    //     });
-    // } else {
-    // apiAddNews({
-    //     ...form,
-    //     time: transTime(form.time),
-    //     content,
-    // }).then((res) => {
-    //     if (res.code >= 0) {
-    //         dialogFormVisible.value = false;
-    //         clearDialog();
-    //         emits("success");
-    //     }
-    // });
-    // }
+    apiSetTrack({
+        id: form.id,
+        history: JSON.stringify(trackHistory.value.concat([])),
+        state: form.state
+    }).then((res) => {
+        if (res.code === 0) {
+            ElMessage.success("更新成功");
+            close();
+            emits("success");
+        } else {
+            ElMessage.info(res.msg);
+        }
+    });
 };
 
 defineExpose({ show, close });
 </script>
 
 <style scoped>
-.avatar-uploader .avatar {
-    /* width: 178px; */
-    height: 178px;
-    display: block;
+ul,
+li {
+    list-style: none;
 }
 
 .list {
@@ -224,39 +191,12 @@ defineExpose({ show, close });
 }
 
 .list li span {
-    margin-right: 10px
+    margin-right: 10px;
+    vertical-align: middle;
 }
 
 .del {
     margin-left: 20px;
-}
-</style>
-
-<style>
-ul,
-li {
-    list-style: none;
-}
-
-.avatar-uploader .el-upload {
-    border: 1px dashed var(--el-border-color);
-    border-radius: 6px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: var(--el-transition-duration-fast);
-}
-
-.avatar-uploader .el-upload:hover {
-    border-color: var(--el-color-primary);
-}
-
-.el-icon.avatar-uploader-icon {
-    font-size: 28px;
-    color: #8c939d;
-    width: 178px;
-    height: 178px;
-    text-align: center;
 }
 
 .option-btn {

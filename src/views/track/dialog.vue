@@ -14,8 +14,9 @@
                     format="YYYY/MM/DD HH:mm:ss" />
             </el-form-item>
             <el-form-item label="目的国" :label-width="formLabelWidth">
-                <el-select v-model="form.end" filterable placeholder="目的国" size="large" style="width: 240px">
-                    <el-option v-for="item in countryOption" :key="item.code" :label="item.name_zh" :value="item.code" />
+                <el-select v-model="form.destination" filterable placeholder="目的国" size="large" style="width: 240px">
+                    <el-option v-for="item in countryOption" :key="item.code" :label="item.name_zh"
+                        :value="item.code" />
                 </el-select>
             </el-form-item>
         </el-form>
@@ -32,12 +33,11 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
 import { reactive, ref, defineEmits, defineExpose } from "vue";
-import { apiAddNews, apiSetNews } from "../../api";
+import { apiAddTrack, apiSetTrack } from "../../api";
 import countryOption from './country';
 
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
-const imageUrl = ref("");
 const modifyId = ref(0);
 const stateOptions = [
     {
@@ -66,22 +66,11 @@ const stateOptions = [
     },
 ]
 
-const transTime = (date: Date) => {
-    const time = new Date(date);
-    return "" + time.getFullYear() + (time.getMonth() + 1).toString().padStart(2, "0") + time.getDate().toString().padStart(2, '0');
-}
-const transDate = (date: string) => {
-    const year = +date.slice(0, 4);
-    const month = +date.slice(4, 6) - 1;
-    const day = +date.slice(6);
-    return new Date(year, month, day);
-}
-
 const form = reactive({
     orderId: "",
     state: '0',
     time: new Date(),
-    end: "",
+    destination: "",
 });
 const emits = defineEmits(["success"]);
 
@@ -101,59 +90,30 @@ const clearDialog = () => {
     form.orderId = "";
     form.state = "0";
     form.time = new Date();
-    form.end = "";
-
+    form.destination = "";
 };
 
 const submit = () => {
-    if (!form.orderId || !form.state || !form.end || !form.time) {
+    if (!form.orderId || !form.state || !form.destination || !form.time) {
         ElMessage.error('信息填写不完整');
         return;
     }
-    // apiAddTrack({
-    //     id: form.orderId,
-    //     state: form.state,
-    //     time: form.time.getTime(),
-    //     end: form.end
-    // }).then(res => {
-    //     if (res.code === 0) {
-    //         ElMessage.success('新增成功');
-    //         clearDialog();
-    //         emits("success");
-    //     } else {
-    //         ElMessage.info(res.msg);
-    //     }
-    // })
-    // if (modifyId.value > 0) {
-    //     // const imgurl = new URL(form.outImg).pathname;
-    //     apiSetNews({
-    //         id: form.orderId,
-    //         outImg: form.outImg,
-    //         title: form.title,
-    //         time: transTime(form.time),
-    //         content: content,
-    //     }).then((res) => {
-    //         if (res.code === 0) {
-    //             ElMessage.success("更新成功");
-    //             close();
-    //             emits("success");
-    //         } else {
-    //             ElMessage.info(res.msg);
-    //         }
-    //     });
-    // } else {
-        // apiAddNews({
-        //     ...form,
-        //     time: transTime(form.time),
-        //     content,
-        // }).then((res) => {
-        //     if (res.code >= 0) {
-        //         dialogFormVisible.value = false;
-        //         clearDialog();
-        //         emits("success");
-        //     }
-        // });
-    // }
+    apiAddTrack({
+        id: form.orderId,
+        state: form.state,
+        updateTime: form.time.getTime().toString(),
+        origin: "CN",
+        destination: form.destination
+    }).then(res => {
+        if (res.code === 0) {
+            ElMessage.success('新增成功');
+            clearDialog();
+            emits("success");
+            close();
+        } else {
+            ElMessage.info(res.msg);
+        }
+    })
 };
 
 defineExpose({ show, close });
