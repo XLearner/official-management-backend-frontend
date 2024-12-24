@@ -6,14 +6,22 @@
             <h3>轨迹信息</h3>
 
             <el-button class="btn" type="primary" @click="showDialog">添加订单</el-button>
-            <div class="horizon-box">
 
-                <el-table :data="trackList" border style="width: 100%">
+            <div class="horizon-box">
+                <div class="state-box">
+                    <el-link type="primary" class="btn" @click="switchList(100)">全部</el-link>
+                    <template v-for="(item, index) in enumState">
+                        <el-link :type="stateOn == index ? 'primary' : 'info'" class="btn" @click="switchList(index)">{{
+                            item }}({{ stateList[`state${index + 1}`].length }})</el-link>
+                    </template>
+                </div>
+                <el-table :data="tableData" border style="width: 100%">
                     <el-table-column type="index" label="序号" width="80" align="center" />
                     <el-table-column prop="updateTime" label="日期" align="center" />
                     <el-table-column prop="id" label="单号" align="center" />
                     <el-table-column prop="state" label="最新状态" align="center" :formatter="formatter" />
-                    <el-table-column prop="destination" label="目的地" align="center" />
+                    <el-table-column prop="destination" label="目的地" align="center" :formatter="trCountry" />
+                    <el-table-column prop="ps" label="备注" align="center" />
                     <el-table-column label="Operations" width="100">
                         <template #default="scope">
                             <!-- <el-button link type="primary" size="small" @click="detail">
@@ -53,6 +61,14 @@ const loadOpt = {
     background: "rgba(0, 0, 0, 0.7)",
 };
 // 内容
+const tableData = ref<
+    {
+        id: string;
+        title: string;
+        updateTime: string;
+        content: string;
+    }[]
+>([]);
 const trackList = ref<
     {
         id: string;
@@ -61,12 +77,30 @@ const trackList = ref<
         content: string;
     }[]
 >([]);
+const stateList = ref<any>({
+    state1: [],
+    state2: [],
+    state3: [],
+    state4: [],
+    state5: [],
+    state6: [],
+});
+const stateOn = ref<number>(100);
 
 const transTime = (date: string) => {
     const time = new Date(parseInt(date));
     return `${time.getFullYear()}/${(time.getMonth() + 1).toString().padStart(2, "0")}/${time.getDate().toString().padStart(2, '0')} ${time.getHours().toString().padStart(2, "0")}:${time.getMinutes().toString().padStart(2, "0")}:${time.getSeconds().toString().padStart(2, "0")} `;
 }
 ///
+
+const switchList = (index: number) => {
+    stateOn.value = index;
+    if (index === 100) {
+        tableData.value = trackList.value;
+        return;
+    }
+    tableData.value = stateList.value[`state${index + 1}`];
+}
 
 const showDialog = () => {
     DialogRef.value.show();
@@ -78,20 +112,51 @@ const showHistoryDialog = (info?: any) => {
 const formatter = (row: any) => {
     return enumState[row.state]
 }
+const trCountry = (row: any) => {
+    return countryMap[row.destination];
+}
 const enumState = ["待上网", "运输中", "派送中", "投递失败", "成功签收", "可能异常"];
 const getTrack = () => {
     return apiGetTrack().then((res) => {
         if (res.code >= 0 && res.data && res.data.length > 0) {
+            const tempStateList: any = {
+                state1: [],
+                state2: [],
+                state3: [],
+                state4: [],
+                state5: [],
+                state6: [],
+            };
             trackList.value = res.data.map((ele: any) => {
-                console.log( JSON.parse(ele.history), ele.history);
-                return {
+                const temp = {
                     ...ele,
-                    destination: countryMap[ele.destination],
                     updateTime: transTime(ele.updateTime),
                     history: JSON.parse(ele.history)
                 }
+                switch (ele.state) {
+                    case '0':
+                        tempStateList.state1.push(temp);
+                        break;
+                    case '1':
+                        tempStateList.state2.push(temp);
+                        break;
+                    case '2':
+                        tempStateList.state3.push(temp);
+                        break;
+                    case '3':
+                        tempStateList.state4.push(temp);
+                        break;
+                    case '4':
+                        tempStateList.state5.push(temp);
+                        break;
+                    case '5':
+                        tempStateList.state6.push(temp);
+                        break;
+                }
+                return temp;
             }).sort((a: { date: number }, b: { date: number }) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            // trackList.value = res.data.sort((a: { date: number }, b: { date: number }) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            stateList.value = tempStateList;
+            tableData.value = trackList.value;
         }
     });
 };
@@ -164,6 +229,17 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     flex-flow: wrap;
+}
+
+.state-box {
+    display: flex;
+    justify-content: start;
+    width: 80%;
+    padding: 8px 0;
+}
+
+.state-box .btn {
+    width: 100px;
 }
 
 .horizon-item {

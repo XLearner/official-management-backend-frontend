@@ -19,6 +19,9 @@
                         :value="item.code" />
                 </el-select>
             </el-form-item>
+            <el-form-item label="备注" :label-width="formLabelWidth">
+                <el-input v-model="form.ps"></el-input>
+            </el-form-item>
         </el-form>
         <template #footer>
             <span class="dialog-footer">
@@ -71,6 +74,7 @@ const form = reactive({
     state: '0',
     time: new Date(),
     destination: "",
+    ps: "",
 });
 const emits = defineEmits(["success"]);
 
@@ -91,6 +95,7 @@ const clearDialog = () => {
     form.state = "0";
     form.time = new Date();
     form.destination = "";
+    form.ps = "";
 };
 
 const submit = () => {

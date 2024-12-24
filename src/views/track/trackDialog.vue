@@ -5,10 +5,14 @@
                 <el-input v-model="form.id" disabled></el-input>
             </el-form-item>
             <el-form-item label="目的国" :label-width="formLabelWidth">
-                <el-select disabled v-model="form.end" filterable placeholder="目的国" size="large" style="width: 240px">
+                <el-select disabled v-model="form.destination" filterable placeholder="目的国" size="large"
+                    style="width: 240px">
                     <el-option v-for="item in countryOption" :key="item.code" :label="item.name_zh"
                         :value="item.code" />
                 </el-select>
+            </el-form-item>
+            <el-form-item label="备注" :label-width="formLabelWidth">
+                <el-input v-model="form.ps"></el-input>
             </el-form-item>
             <el-form-item label="当前状态" :label-width="formLabelWidth">
                 <el-select v-model="form.state" placeholder="状态" size="large" style="width: 240px">
@@ -103,7 +107,8 @@ const form = reactive({
     id: "",
     state: '0',
     updateTime: new Date(),
-    end: "",
+    destination: "",
+    ps: ""
 });
 const emits = defineEmits(["success"]);
 
@@ -113,7 +118,8 @@ const show = (info: any) => {
         id: info.id,
         state: info.state,
         updateTime: transDate(info.updateTime),
-        end: info.end,
+        destination: info.destination,
+        ps: info.ps,
     })
     trackHistory.value = info.history
 };
@@ -130,7 +136,8 @@ const clearDialog = () => {
     form.id = "";
     form.state = "0";
     form.updateTime = new Date();
-    form.end = "";
+    form.destination = "";
+    form.ps = "";
 
 };
 
@@ -154,7 +161,8 @@ const submit = () => {
     apiSetTrack({
         id: form.id,
         history: JSON.stringify(trackHistory.value.concat([])),
-        state: form.state
+        state: form.state,
+        ps: form.ps,
     }).then((res) => {
         if (res.code === 0) {
             ElMessage.success("更新成功");
@@ -199,6 +207,9 @@ li {
     margin-left: 20px;
 }
 
+.option-box {
+    display: flex;
+}
 .option-btn {
     width: 240px;
     vertical-align: middle;
