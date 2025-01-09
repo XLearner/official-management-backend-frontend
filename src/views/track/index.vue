@@ -15,18 +15,16 @@
                             item }}({{ stateList[`state${index + 1}`].length }})</el-link>
                     </template>
                 </div>
-                <el-table :data="tableData" border style="width: 100%">
+                <el-table :data="tableData" border :default-sort="{ prop: 'updateTime', order: 'descending' }"
+                    style="width: 100%">
                     <el-table-column type="index" label="序号" width="80" align="center" />
-                    <el-table-column prop="updateTime" label="日期" align="center" />
+                    <el-table-column prop="updateTime" label="日期" sortable align="center" />
                     <el-table-column prop="id" label="单号" align="center" />
                     <el-table-column prop="state" label="最新状态" align="center" :formatter="formatter" />
                     <el-table-column prop="destination" label="目的地" align="center" :formatter="trCountry" />
                     <el-table-column prop="ps" label="备注" align="center" />
                     <el-table-column label="Operations" width="100">
                         <template #default="scope">
-                            <!-- <el-button link type="primary" size="small" @click="detail">
-                      Detail
-                    </el-button> -->
                             <el-button link type="primary" size="small"
                                 @click="showHistoryDialog(scope.row)">编辑</el-button>
                             <el-popconfirm title="确认删除？" @confirm="deleteTrack(scope.row.id.toString())">
@@ -38,7 +36,10 @@
                         </template>
                     </el-table-column>
                 </el-table>
-
+                <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+                    :page-sizes="[10, 20, 50, 100]" size="small" background layout="total, prev, pager, next, sizes"
+                    :total="totalPage" @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                    class="pagination" />
             </div>
         </div>
     </div>
@@ -46,7 +47,7 @@
 
 <script setup lang="ts">
 import { ElLoading, ElMessage } from 'element-plus';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { apiDeleteTrack, apiGetTrack } from '../../api/index'
 import SelfDialog from './dialog.vue'
 import TrackDialog from './trackDialog.vue'
@@ -86,20 +87,38 @@ const stateList = ref<any>({
     state6: [],
 });
 const stateOn = ref<number>(100);
+const currentPage = ref(1)
+const pageSize = ref(50)
+
+const totalPage = computed(() => {
+    if (stateOn.value == 100) {
+        return trackList.value.length;
+    }
+    return stateList.value[`state${stateOn.value + 1}`].length;
+})
 
 const transTime = (date: string) => {
     const time = new Date(parseInt(date));
     return `${time.getFullYear()}/${(time.getMonth() + 1).toString().padStart(2, "0")}/${time.getDate().toString().padStart(2, '0')} ${time.getHours().toString().padStart(2, "0")}:${time.getMinutes().toString().padStart(2, "0")}:${time.getSeconds().toString().padStart(2, "0")} `;
 }
-///
 
+///
+const handleSizeChange = (val: number) => {
+    pageSize.value = val;
+    handleCurrentChange(currentPage.value);
+}
+const handleCurrentChange = (val: number) => {
+    const start = (currentPage.value - 1) * pageSize.value,
+        end = currentPage.value * pageSize.value;
+    if (stateOn.value == 100) {
+        tableData.value = trackList.value.slice(start, end);
+    } else {
+        tableData.value = stateList.value[`state${stateOn.value + 1}`].slice(start, end);
+    }
+}
 const switchList = (index: number) => {
     stateOn.value = index;
-    if (index === 100) {
-        tableData.value = trackList.value;
-        return;
-    }
-    tableData.value = stateList.value[`state${index + 1}`];
+    handleCurrentChange(1);
 }
 
 const showDialog = () => {
@@ -154,9 +173,9 @@ const getTrack = () => {
                         break;
                 }
                 return temp;
-            }).sort((a: { date: number }, b: { date: number }) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            });
             stateList.value = tempStateList;
-            tableData.value = trackList.value;
+            switchList(stateOn.value);
         }
     });
 };
@@ -269,5 +288,9 @@ onMounted(() => {
     justify-content: center;
     align-items: center;
     padding: 20px;
+}
+
+.pagination {
+    margin-top: 10px;
 }
 </style>
