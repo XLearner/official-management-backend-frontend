@@ -18,5 +18,14 @@ export default defineConfig({
 	],
 	optimizeDeps: {
 		include: ['schart.js']
+	},
+	server: {
+		proxy: {
+			'/api': {
+				target: 'http://www.zhonghanlogistics.cn:8903',
+				changeOrigin: true,
+				rewrite: (path) => path.replace(/^\/api/, '')
+			}
+		}
 	}
 });

@@ -64,7 +64,6 @@ const items: any = [
     },
     {
         icon: 'Calendar',
-        index: '8/home',
         title: '内容设置',
         permiss: '8',
         subs: [
@@ -104,6 +103,12 @@ const items: any = [
                 permiss: '8',
             },
         ]
+    },
+    {
+        icon: 'Position',
+        index: '/track',
+        title: '轨迹追踪',
+        permiss: '11',
     },
     // {
     //     icon: 'Calendar',
