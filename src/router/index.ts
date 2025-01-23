@@ -152,15 +152,15 @@ const routes: RouteRecordRaw[] = [
           import(/* webpackChunkName: "donate" */ "../views/donate.vue"),
       },
       {
-        path: "/permission",
-        name: "permission",
+        path: "/usermanage",
+        name: "usermanage",
         meta: {
-          title: "权限管理",
+          title: "用户管理",
           permiss: "13",
         },
         component: () =>
           import(
-            /* webpackChunkName: "permission" */ "../views/permission.vue"
+            /* webpackChunkName: "usermanage" */ "../views/user/index.vue"
           ),
       },
       {

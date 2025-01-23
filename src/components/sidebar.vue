@@ -186,12 +186,12 @@ const items: any = [
     //     title: 'schart图表',
     //     permiss: '11',
     // },
-    // {
-    //     icon: 'Warning',
-    //     index: '/permission',
-    //     title: '权限管理',
-    //     permiss: '13',
-    // },
+    {
+        icon: 'UserFilled',
+        index: '/usermanage',
+        title: '用户管理',
+        permiss: '13',
+    },
     // {
     //     icon: 'CoffeeCup',
     //     index: '/donate',

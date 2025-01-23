@@ -22,17 +22,15 @@
 				<el-card shadow="hover" style="height: 252px">
 					<template #header>
 						<div class="clearfix">
-							<span>语言详情</span>
+							<span>渠道运输详情</span>
 						</div>
 					</template>
-					Vue
+					海运
 					<el-progress :percentage="79.4" color="#42b983"></el-progress>
-					TypeScript
+					陆运
 					<el-progress :percentage="14" color="#f1e05a"></el-progress>
-					CSS
+					空运
 					<el-progress :percentage="5.6"></el-progress>
-					HTML
-					<el-progress :percentage="1" color="#f56c6c"></el-progress>
 				</el-card>
 			</el-col>
 			<el-col :span="16">
@@ -40,10 +38,10 @@
 					<el-col :span="8">
 						<el-card shadow="hover" :body-style="{ padding: '0px' }">
 							<div class="grid-content grid-con-1">
-								<el-icon class="grid-con-icon"><User /></el-icon>
+								<el-icon class="grid-con-icon"><Files /></el-icon>
 								<div class="grid-cont-right">
-									<div class="grid-num">1234</div>
-									<div>用户访问量</div>
+									<div class="grid-num">{{ orders.length }}</div>
+									<div>总订单量</div>
 								</div>
 							</div>
 						</el-card>
@@ -51,10 +49,10 @@
 					<el-col :span="8">
 						<el-card shadow="hover" :body-style="{ padding: '0px' }">
 							<div class="grid-content grid-con-2">
-								<el-icon class="grid-con-icon"><ChatDotRound /></el-icon>
+								<el-icon class="grid-con-icon"><Van /></el-icon>
 								<div class="grid-cont-right">
-									<div class="grid-num">321</div>
-									<div>系统消息</div>
+									<div class="grid-num">{{ sending.length }}</div>
+									<div>运输中</div>
 								</div>
 							</div>
 						</el-card>
@@ -62,10 +60,10 @@
 					<el-col :span="8">
 						<el-card shadow="hover" :body-style="{ padding: '0px' }">
 							<div class="grid-content grid-con-3">
-								<el-icon class="grid-con-icon"><Goods /></el-icon>
+								<el-icon class="grid-con-icon"><CircleCheck /></el-icon>
 								<div class="grid-cont-right">
-									<div class="grid-num">5000</div>
-									<div>商品数量</div>
+									<div class="grid-num">{{ done.length }}</div>
+									<div>已完成</div>
 								</div>
 							</div>
 						</el-card>
@@ -74,17 +72,12 @@
 				<el-card shadow="hover" style="height: 403px">
 					<template #header>
 						<div class="clearfix">
-							<span>待办事项</span>
-							<el-button style="float: right; padding: 3px 0" text>添加</el-button>
+							<span>即将到货</span>
+							<!-- <el-button style="float: right; padding: 3px 0" text>添加</el-button> -->
 						</div>
 					</template>
 
-					<el-table :show-header="false" :data="todoList" style="width: 100%">
-						<el-table-column width="40">
-							<template #default="scope">
-								<el-checkbox v-model="scope.row.status"></el-checkbox>
-							</template>
-						</el-table-column>
+					<el-table :show-header="false" :data="sending" style="width: 100%">
 						<el-table-column>
 							<template #default="scope">
 								<div
@@ -93,7 +86,21 @@
 										'todo-item-del': scope.row.status
 									}"
 								>
-									{{ scope.row.title }}
+									{{ scope.row.id }}
+								</div>
+							</template>
+						</el-table-column>
+						<el-table-column>
+							<template #default="scope">
+								<div>
+									{{ countryMap[scope.row.destination] }}
+								</div>
+							</template>
+						</el-table-column>
+						<el-table-column>
+							<template #default="scope">
+								<div>
+									{{ transTime(scope.row.updateTime) }}
 								</div>
 							</template>
 						</el-table-column>
@@ -118,8 +125,10 @@
 
 <script setup lang="ts" name="dashboard">
 import Schart from 'vue-schart';
-import { reactive } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import imgurl from '../assets/img/img.jpg';
+import { apiGetTrack } from '../api';
+import { countryMap } from './track/country';
 
 const name = localStorage.getItem('ms_username');
 const role: string = name === 'admin' ? '超级管理员' : '普通用户';
@@ -169,30 +178,71 @@ const options2 = {
 };
 const todoList = reactive([
 	{
-		title: '今天要修复100个bug',
+		title: '今天要修复58个bug',
 		status: false
 	},
 	{
 		title: '今天要修复100个bug',
 		status: false
 	},
-	{
-		title: '今天要写100行代码加几个bug吧',
-		status: false
-	},
-	{
-		title: '今天要修复100个bug',
-		status: false
-	},
-	{
-		title: '今天要修复100个bug',
-		status: true
-	},
-	{
-		title: '今天要写100行代码加几个bug吧',
-		status: true
-	}
+	// {
+	// 	title: '今天要写100行代码加几个bug吧',
+	// 	status: false
+	// },
+	// {
+	// 	title: '今天要修复100个bug',
+	// 	status: false
+	// },
+	// {
+	// 	title: '今天要修复100个bug',
+	// 	status: true
+	// },
+	// {
+	// 	title: '今天要写100行代码加几个bug吧',
+	// 	status: true
+	// }
 ]);
+const orders = ref([]);
+const sending = ref([]);
+const done = ref([]);
+
+onMounted(() => {
+	getTrack();
+})
+
+const transTime = (date: string) => {
+    const time = new Date(parseInt(date));
+    return `${time.getFullYear()}/${(time.getMonth() + 1).toString().padStart(2, "0")}/${time.getDate().toString().padStart(2, '0')} ${time.getHours().toString().padStart(2, "0")}:${time.getMinutes().toString().padStart(2, "0")}:${time.getSeconds().toString().padStart(2, "0")} `;
+}
+
+interface IOrder {
+	updateTime: string;
+	state: string;
+}
+const getTrack = () => {
+    return apiGetTrack().then((res) => {
+        if (res.code >= 0 && res.data && res.data.length > 0) {
+            const tempStateList: any = {
+                state1: [],
+                state2: [],
+                state3: [],
+                state4: [],
+                state5: [],
+                state6: [],
+            };
+			orders.value = res.data;
+			// ["待上网", "运输中", "派送中", "投递失败", "成功签收", "可能异常"]
+			sending.value = (res.data as []).filter((r: IOrder) => {
+				return r.state != '3' && r.state != '4'
+			}).sort((a: IOrder, b: IOrder) => {
+				return new Date(+a.updateTime).getTime() - new Date(+b.updateTime).getTime()
+			});
+			done.value = (res.data as []).filter((r: IOrder) => {
+				return r.state == '3' || r.state == '4'
+			});
+        }
+    });
+};
 </script>
 
 <style scoped>
@@ -244,11 +294,11 @@ const todoList = reactive([
 }
 
 .grid-con-3 .grid-con-icon {
-	background: rgb(242, 94, 67);
+	background: rgb(242, 178, 67);
 }
 
 .grid-con-3 .grid-num {
-	color: rgb(242, 94, 67);
+	color: rgb(242, 178, 67);
 }
 
 .user-info {
