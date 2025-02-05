@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import Editor from '../../components/editor.vue';
 import { ElMessage, UploadProps } from "element-plus";
-import { reactive, ref, defineEmits, defineExpose, onMounted } from "vue";
+import { reactive, ref } from "vue";
 import { apiAddRelative, apiSetRelative, baseURL } from "../../api";
 
 const uploadImgUrl = `${baseURL}/v1/upload`;

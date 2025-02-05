@@ -1,6 +1,7 @@
 <template>
     <div class="container">
         <NewDialog ref="NewRef" @success="getUsers"></NewDialog>
+        <PermissionDialog ref="PermRef" @success="getUsers"></PermissionDialog>
         <div class="box">
             <div class="btn-box">
                 <el-button class="btn" type="primary" @click="showDialog">添加用户</el-button>
@@ -39,10 +40,12 @@ import { onMounted, ref } from 'vue';
 import { ElLoading, ElMessage, ElTree } from 'element-plus';
 import { apiDeleteUser, apiGetUsers } from '../../api';
 import NewDialog from './newDialog.vue';
+import PermissionDialog from './permission.vue';
 
 
 const tableData = ref([]);
 const NewRef = ref<any>(null);
+const PermRef = ref<any>(null);
 const loadOpt = {
     lock: true,
     text: "Loading",
@@ -87,7 +90,6 @@ const modifyPermission = (id: string) => {
 // 添加用户弹窗
 const deleteUser = (id: string) => {
     const loading = ElLoading.service(loadOpt);
-    console.log(id);
     apiDeleteUser({ id }).then(res => {
         if (res.code >= 0) {
             ElMessage.success("成功删除一项");

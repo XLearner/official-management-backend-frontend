@@ -35,8 +35,8 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
-import { reactive, ref, defineEmits, defineExpose } from "vue";
-import { apiAddTrack, apiSetTrack } from "../../api";
+import { reactive, ref } from "vue";
+import { apiAddTrack } from "../../api";
 import countryOption from './country';
 
 const formLabelWidth = "140px";

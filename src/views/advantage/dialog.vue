@@ -40,7 +40,7 @@
 <script setup lang="ts">
 // @ts-ignore
 import { ElMessage, UploadProps } from "element-plus";
-import { reactive, ref, defineEmits, defineExpose } from "vue";
+import { reactive, ref } from "vue";
 import { apiAddAdvantage, apiSetAdvantage } from "../../api";
 
 const formLabelWidth = "140px";

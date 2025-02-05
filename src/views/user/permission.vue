@@ -1,25 +1,27 @@
 <template>
-	<div class="container">
-		<div class="plugins-tips">通过 v-permiss 自定义指令实现权限管理，使用非 admin 账号登录，可查看效果。</div>
-		<div class="mgb20">
-			<span class="label">角色：</span>
-			<el-select v-model="role" @change="handleChange">
-				<el-option label="超级管理员" value="admin"></el-option>
-				<el-option label="普通用户" value="user"></el-option>
-			</el-select>
-		</div>
-		<div class="mgb20 tree-wrapper">
-			<el-tree
-				ref="tree"
-				:data="data"
-				node-key="id"
-				default-expand-all
-				show-checkbox
-				:default-checked-keys="checkedKeys"
-			/>
-		</div>
-		<el-button type="primary" @click="onSubmit">保存权限</el-button>
-	</div>
+	<el-dialog v-model="dialogFormVisible" title="权限编辑" :before-close="beforeClose" :width="800">
+        <div class="container">
+            <div class="plugins-tips">通过 v-permiss 自定义指令实现权限管理，使用非 admin 账号登录，可查看效果。</div>
+            <div class="mgb20">
+                <span class="label">角色：</span>
+                <el-select v-model="role" @change="handleChange">
+                    <el-option label="超级管理员" value="admin"></el-option>
+                    <el-option label="普通用户" value="user"></el-option>
+                </el-select>
+            </div>
+            <div class="mgb20 tree-wrapper">
+                <el-tree
+                    ref="tree"
+                    :data="data"
+                    node-key="id"
+                    default-expand-all
+                    show-checkbox
+                    :default-checked-keys="checkedKeys"
+                />
+            </div>
+            <el-button type="primary" @click="onSubmit">保存权限</el-button>
+        </div>
+    </el-dialog>
 </template>
 
 <script setup lang="ts" name="permission">
@@ -35,6 +37,7 @@ interface Tree {
 	children?: Tree[];
 }
 
+const dialogFormVisible = ref(false);
 const data: Tree[] = [
 	{
 		id: '1',
@@ -106,6 +109,32 @@ const data: Tree[] = [
 ];
 
 const permiss = usePermissStore();
+
+const emits = defineEmits(["success"]);
+
+const show = (id: string) => {
+    dialogFormVisible.value = true;
+    if (id) {
+        // apiGetUsers(id).then(res => {
+        //     form.account = res.data[0].account;
+        //     form.date = res.data[0].date;
+        //     form.id = res.data[0].id;
+        //     form.permission = res.data[0].permission;
+        //     form.ps = res.data[0].ps;
+        // })
+    }
+};
+const close = () => {
+    dialogFormVisible.value = false;
+    clearDialog();
+};
+const beforeClose = (done: () => void) => {
+    clearDialog();
+    done();
+};
+const clearDialog = () => {
+
+}
 
 // 获取当前权限
 const checkedKeys = ref<string[]>([]);

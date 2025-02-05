@@ -31,13 +31,12 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
-import { reactive, ref, defineEmits, defineExpose } from "vue";
-import { apiAddUser, apiGetUsers, apiSetTrack, apiSetUser } from "../../api";
+import { reactive, ref } from "vue";
+import { apiAddUser, apiGetUsers, apiSetUser } from "../../api";
 import md5 from 'md5';
 
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
-const modifyId = ref(0);
 const permissionOptions = [
     {
         id: '1',

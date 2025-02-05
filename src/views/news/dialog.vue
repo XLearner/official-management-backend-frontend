@@ -40,7 +40,7 @@
 import Editor from '../../components/editor.vue';
 // @ts-ignore
 import { ElMessage, UploadProps } from 'element-plus';
-import { reactive, ref, defineEmits, defineExpose, onMounted } from "vue";
+import { reactive, ref } from "vue";
 import { apiAddNews, apiSetNews, baseURL } from "../../api";
 
 const uploadImgUrl = `${baseURL}/v1/upload`;

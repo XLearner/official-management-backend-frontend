@@ -164,6 +164,18 @@ const routes: RouteRecordRaw[] = [
           ),
       },
       {
+        path: "/permission",
+        name: "permission",
+        meta: {
+          title: "权限管理",
+          permiss: "13",
+        },
+        component: () =>
+          import(
+            /* webpackChunkName: "usermanage" */ "../views/_permission.vue"
+          ),
+      },
+      {
         path: "/upload",
         name: "upload",
         meta: {

@@ -35,7 +35,7 @@
   <script setup lang="ts">
   // @ts-ignore
   import { UploadProps } from 'element-plus';
-  import { reactive, ref, defineEmits, defineExpose } from 'vue';
+  import { reactive, ref } from 'vue';
   import { apiSaveBanner, baseURL } from '../../api';
   
   const uploadImgUrl = `${baseURL}/v1/upload`;

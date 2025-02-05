@@ -19,6 +19,7 @@
 			/>
 		</div>
 		<el-button type="primary" @click="onSubmit">保存权限</el-button>
+		<el-button type="primary" @click="checkNode">check</el-button>
 	</div>
 </template>
 
@@ -35,6 +36,7 @@ interface Tree {
 	children?: Tree[];
 }
 
+// const data: Tree[] = [];
 const data: Tree[] = [
 	{
 		id: '1',
@@ -123,8 +125,14 @@ const onSubmit = () => {
 };
 
 const handleChange = (val: string[]) => {
+	console.log(permiss.defaultList[role.value]);
 	tree.value!.setCheckedKeys(permiss.defaultList[role.value]);
 };
+
+const checkNode = () => {
+	console.log(tree.value!.getCheckedNodes());
+}
+
 </script>
 
 <style scoped>
