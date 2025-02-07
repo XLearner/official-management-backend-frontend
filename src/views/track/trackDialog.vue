@@ -2,7 +2,8 @@
     <el-dialog v-model="dialogFormVisible" title="轨迹编辑" :before-close="beforeClose" :width="800">
         <el-form :model="form">
             <el-form-item label="订单号" :label-width="formLabelWidth">
-                <el-input v-model="form.id" disabled></el-input>
+                <el-input v-model="form.id" disabled style="width: 200px;"></el-input>
+                <el-button link type="primary" size="small" @click="toTrack(form.id)">轨迹查询</el-button>
             </el-form-item>
             <el-form-item label="目的国" :label-width="formLabelWidth">
                 <el-select disabled v-model="form.destination" filterable placeholder="目的国" size="large"
@@ -112,6 +113,10 @@ const form = reactive({
 });
 const emits = defineEmits(["success"]);
 
+const toTrack = (id: string) => {
+    window.open('http://www.zhonghanlogistics.cn/track/?' + 'order_id=' + id, 'blank');
+}
+
 const show = (info: any) => {
     dialogFormVisible.value = true;
     Object.assign(form, {
@@ -210,6 +215,7 @@ li {
 .option-box {
     display: flex;
 }
+
 .option-btn {
     width: 240px;
     vertical-align: middle;
