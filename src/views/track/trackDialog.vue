@@ -164,7 +164,7 @@ const submit = () => {
         state: form.state,
         ps: form.ps,
     }).then((res) => {
-        if (res.code === 0) {
+        if (res.code >= 0) {
             ElMessage.success("更新成功");
             close();
             emits("success");

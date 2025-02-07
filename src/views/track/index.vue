@@ -23,11 +23,13 @@
                     <el-table-column prop="state" label="最新状态" align="center" :formatter="formatter" />
                     <el-table-column prop="destination" label="目的地" align="center" :formatter="trCountry" />
                     <el-table-column prop="ps" label="备注" align="center" />
-                    <el-table-column label="Operations" width="100">
+                    <el-table-column label="Operations" width="150">
                         <template #default="scope">
                             <el-button link type="primary" size="small"
-                                @click="showHistoryDialog(scope.row)">编辑</el-button>
-                            <el-popconfirm title="确认删除？" @confirm="deleteTrack(scope.row.id.toString())">
+                                @click="showDialog(scope.row)">订单</el-button>
+                            <el-button link type="primary" size="small"
+                                @click="showHistoryDialog(scope.row)">轨迹</el-button>
+                            <el-popconfirm title="确认删除？" @confirm="deleteOrder(scope.row.id.toString())">
                                 <template #reference>
                                     <el-button link type="primary" size="small">删除</el-button>
                                 </template>
@@ -48,7 +50,7 @@
 <script setup lang="ts">
 import { ElLoading, ElMessage } from 'element-plus';
 import { computed, onMounted, ref } from 'vue';
-import { apiDeleteTrack, apiGetTrack } from '../../api/index'
+import { apiDeleteOrder, apiGetTrack } from '../../api/index'
 import SelfDialog from './dialog.vue'
 import TrackDialog from './trackDialog.vue'
 import { countryMap } from './country';
@@ -121,8 +123,8 @@ const switchList = (index: number) => {
     handleCurrentChange(1);
 }
 
-const showDialog = () => {
-    DialogRef.value.show();
+const showDialog = (row?: any) => {
+    DialogRef.value.show(row?.id);
 };
 const showHistoryDialog = (info?: any) => {
     TrackDiaRef.value.show(info);
@@ -180,9 +182,9 @@ const getTrack = () => {
     });
 };
 
-const deleteTrack = (id: string) => {
+const deleteOrder = (id: string) => {
     const loading = ElLoading.service(loadOpt);
-    apiDeleteTrack({ id }).then((res) => {
+    apiDeleteOrder({ id }).then((res) => {
         if (res.code >= 0) {
             ElMessage.success("成功删除一项");
             getTrack();
