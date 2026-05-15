@@ -1,9 +1,12 @@
 <template>
     <el-dialog v-model="dialogFormVisible" title="轨迹编辑" :before-close="beforeClose" :width="800">
         <el-form :model="form">
-            <el-form-item label="订单号" :label-width="formLabelWidth">
+            <el-form-item label="运单号" :label-width="formLabelWidth">
                 <el-input v-model="form.id" disabled style="width: 200px;"></el-input>
                 <el-button link type="primary" size="small" @click="toTrack(form.id)">轨迹查询</el-button>
+            </el-form-item>
+            <el-form-item label="转单号" :label-width="formLabelWidth">
+                <el-input v-model="form.suplierId" disabled style="width: 200px;"></el-input>
             </el-form-item>
             <el-form-item label="目的国" :label-width="formLabelWidth">
                 <el-select disabled v-model="form.destination" filterable placeholder="目的国" size="large"
@@ -106,6 +109,7 @@ const transDate = (date: string) => {
 
 const form = reactive({
     id: "",
+    suplierId: "",
     state: '0',
     updateTime: new Date(),
     destination: "",
@@ -158,7 +162,7 @@ const pushTrack = () => {
     }
 }
 
-const deleteTrack = (index: number) => {
+const deleteTrack = (index: number|string) => {
     trackHistory.value.splice(index, 1)
 }
 

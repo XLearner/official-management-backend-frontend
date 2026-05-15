@@ -3,7 +3,7 @@
         <TrackDialog ref="TrackDiaRef" @success="sucCallback"></TrackDialog>
         <div class="box">
             <SelfDialog ref="DialogRef" @success="sucCallback"></SelfDialog>
-            <h3>轨迹信息</h3>
+            <h3>订单信息</h3>
 
             <el-button class="btn" type="primary" @click="showDialog">添加订单</el-button>
 
@@ -18,10 +18,14 @@
                 <el-table :data="tableData" border :default-sort="{ prop: 'updateTime', order: 'descending' }"
                     style="width: 100%">
                     <el-table-column type="index" label="序号" width="80" align="center" />
+                    <el-table-column prop="id" label="运单号" align="center" />
+                    <el-table-column prop="suplierId" label="转单号" align="center" />
                     <el-table-column prop="updateTime" label="日期" sortable align="center" />
-                    <el-table-column prop="id" label="单号" align="center" />
                     <el-table-column prop="state" label="最新状态" align="center" :formatter="formatter" />
                     <el-table-column prop="destination" label="目的地" align="center" :formatter="trCountry" />
+                    <el-table-column prop="warehouse" label="交货仓库" sortable align="center" />
+                    <el-table-column prop="inHouseTime" label="入仓时间" sortable align="center" />
+                    <el-table-column prop="goodsName" label="商品名称" sortable align="center" />
                     <el-table-column prop="ps" label="备注" align="center" />
                     <el-table-column label="Operations" width="150">
                         <template #default="scope">

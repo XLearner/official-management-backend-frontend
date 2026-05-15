@@ -1,80 +1,199 @@
 <template>
-    <el-dialog v-model="dialogFormVisible" title="订单编辑" :before-close="beforeClose" :width="800">
+    <el-dialog v-model="dialogFormVisible" title="订单编辑" :before-close="beforeClose" :width="1100"
+        :close-on-click-modal="false">
         <el-form :model="form">
-            <el-form-item label="订单号" :label-width="formLabelWidth" aria-required>
-                <el-input v-model="form.orderId" :disabled="disabledModify"></el-input>
-            </el-form-item>
-            <el-form-item label="当前状态" :label-width="formLabelWidth" aria-required>
-                <el-select :disabled="disabledModify" v-model="form.state" placeholder="状态" size="large" style="width: 240px">
-                    <el-option v-for="item in stateOptions" :key="item.id" :label="item.name" :value="item.id" />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="日期" :label-width="formLabelWidth" aria-required>
-                <el-date-picker :disabled="disabledModify" v-model="form.time" type="datetime" placeholder="选择日期和时间"
-                    format="YYYY/MM/DD HH:mm:ss" />
-            </el-form-item>
-            <el-form-item label="目的国" :label-width="formLabelWidth" aria-required>
-                <el-select :disabled="disabledModify" v-model="form.destination" filterable placeholder="目的国" size="large" style="width: 240px">
-                    <el-option v-for="item in countryOption" :key="item.code" :label="item.name_zh"
-                        :value="item.code" />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="备注" :label-width="formLabelWidth">
-                <el-input v-model="form.ps"></el-input>
-            </el-form-item>
+            <p class="stit">订单信息</p>
+            <el-row :gutter="20">
+                <el-col :span="12">
+                    <el-form-item label="运单号" :label-width="formLabelWidth" aria-required>
+                        <el-input v-model="form.orderId" :disabled="disabledModify"></el-input>
+                        <button @click="getId" v-show="!disabledModify">生成</button>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="转单号" :label-width="formLabelWidth">
+                        <el-input v-model="form.suplierId"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="日期" :label-width="formLabelWidth" aria-required>
+                        <el-date-picker :disabled="disabledModify" v-model="form.time" type="datetime"
+                            placeholder="选择日期和时间" format="YYYY/MM/DD HH:mm:ss" />
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="当前状态" :label-width="formLabelWidth" aria-required>
+                        <el-select :disabled="disabledModify" v-model="form.state" placeholder="状态" size="large"
+                            style="width: 240px">
+                            <el-option v-for="item in stateOptions" :key="item.id" :label="item.name"
+                                :value="item.id" />
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="目的国" :label-width="formLabelWidth" aria-required>
+                        <el-select :disabled="disabledModify" v-model="form.destination" filterable placeholder="目的国"
+                            size="large" style="width: 240px">
+                            <el-option v-for="item in countryOption" :key="item.code" :label="item.name_zh"
+                                :value="item.code" />
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="备注" :label-width="formLabelWidth">
+                        <el-input v-model="form.ps"></el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+
+            <p class="stit">入库信息</p>
+            <el-row :gutter="20">
+                <el-col :span="12">
+                    <el-form-item label="入库时间" :label-width="formLabelWidth">
+                        <el-date-picker v-model="form.inHouseTime" type="datetime"
+                            placeholder="选择日期和时间" format="YYYY/MM/DD HH:mm:ss" />
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="仓库信息" :label-width="formLabelWidth">
+                        <el-input v-model="form.warehouse"></el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+
             <p class="stit">发件人信息：</p>
             <div class="box">
-                <el-form-item label="联系人" :label-width="formLabelWidth">
-                    <el-input v-model="form.shipper.contactPeople"></el-input>
-                </el-form-item>
-                <el-form-item label="公司名称" :label-width="formLabelWidth">
-                    <el-input v-model="form.shipper.companyName" style="width: 200px;"></el-input>
-                </el-form-item>
-                <el-form-item label="电话" :label-width="formLabelWidth">
-                    <el-input v-model="form.shipper.tel"></el-input>
-                </el-form-item>
-                <el-form-item label="地址" :label-width="formLabelWidth">
-                    <el-input v-model="form.shipper.addr" style="width: 200px;"></el-input>
-                </el-form-item>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item label="联系人" :label-width="formLabelWidth">
+                            <el-input v-model="form.shipper.contactPeople"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="公司名称" :label-width="formLabelWidth">
+                            <el-input v-model="form.shipper.companyName"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="电话" :label-width="formLabelWidth">
+                            <el-input v-model="form.shipper.tel"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="地址" :label-width="formLabelWidth">
+                            <el-input v-model="form.shipper.addr"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
             </div>
+
             <p class="stit">收件人信息：</p>
             <div class="box">
-                <el-form-item label="联系人" :label-width="formLabelWidth" aria-required>
-                    <el-input :disabled="disabledModify" v-model="form.receiver.contactPeople"></el-input>
-                </el-form-item>
-                <el-form-item label="公司名称" :label-width="formLabelWidth">
-                    <el-input :disabled="disabledModify" v-model="form.receiver.companyName" style="width: 200px;"></el-input>
-                </el-form-item>
-                <el-form-item label="电话" :label-width="formLabelWidth" aria-required>
-                    <el-input :disabled="disabledModify" v-model="form.receiver.tel"></el-input>
-                </el-form-item>
-                <el-form-item label="派送地址" :label-width="formLabelWidth" aria-required>
-                    <el-input :disabled="disabledModify" v-model="form.receiver.addr" style="width: 200px;"></el-input>
-                </el-form-item>
-                <el-form-item label="邮政编码" :label-width="formLabelWidth" aria-required>
-                    <el-input :disabled="disabledModify" v-model="form.receiver.zipCode"></el-input>
-                </el-form-item>
-                <el-form-item label="国家" :label-width="formLabelWidth">
-                    <el-input :disabled="disabledModify" v-model="form.receiver.country" style="width: 200px;"></el-input>
-                </el-form-item>
+                <el-col :span="12">
+                    <el-form-item label="联系人" :label-width="formLabelWidth" aria-required>
+                        <el-input v-model="form.receiver.contactPeople"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="公司名称" :label-width="formLabelWidth">
+                        <el-input v-model="form.receiver.companyName"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="联系电话" :label-width="formLabelWidth" aria-required>
+                        <el-input v-model="form.receiver.tel"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="邮箱" :label-width="formLabelWidth" aria-required>
+                        <el-input v-model="form.receiver.email"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="国家" :label-width="formLabelWidth">
+                        <el-select v-model="form.receiver.country" filterable
+                            placeholder="目的国" size="large">
+                            <el-option v-for="item in countryOption" :key="item.code" :label="item.name_zh"
+                                :value="item.code" />
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="邮政编码" :label-width="formLabelWidth" aria-required>
+                        <el-input v-model="form.receiver.zipCode"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                    <el-form-item label="详细地址" :label-width="formLabelWidth" aria-required>
+                        <el-input v-model="form.receiver.addr"></el-input>
+                    </el-form-item>
+                </el-col>
             </div>
+
             <p class="stit">货物信息</p>
-            <div class="box">
-                <el-form-item label="品名" :label-width="formLabelWidth" aria-required>
-                    <el-input v-model="form.goods.name"></el-input>
-                </el-form-item>
-                <el-form-item label="长、宽、高" :label-width="formLabelWidth">
-                    <el-input v-model="form.goods.length" style="width: 60px;margin-right:5px;"></el-input>
-                    <el-input v-model="form.goods.width" style="width: 60px;margin-right:5px;"></el-input>
-                    <el-input v-model="form.goods.height" style="width: 60px;"></el-input>
-                </el-form-item>
-                <el-form-item label="计费重量" :label-width="formLabelWidth" aria-required>
-                    <el-input-number controls-position="right" v-model="form.goods.weight"></el-input-number>
-                </el-form-item>
-                <el-form-item label="件数" :label-width="formLabelWidth">
-                    <el-input-number controls-position="right" v-model="form.goods.number"></el-input-number>
-                </el-form-item>
-            </div>
+            <el-row :gutter="20">
+                <el-col :span="12">
+                    <el-form-item label="品名" :label-width="formLabelWidth" aria-required>
+                        <el-input v-model="form.goods.name"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="件数" :label-width="formLabelWidth">
+                        <el-input-number controls-position="right" v-model="form.goods.number"></el-input-number>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="长、宽、高" :label-width="formLabelWidth">
+                        <el-input v-model="form.goods.length" style="width: 60px;margin-right:5px;"
+                            placeholder="长"></el-input>
+                        <el-input v-model="form.goods.width" style="width: 60px;margin-right:5px;"
+                            placeholder="宽"></el-input>
+                        <el-input v-model="form.goods.height" style="width: 60px;" placeholder="高"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="实际重量" :label-width="formLabelWidth" aria-required>
+                        <el-input-number controls-position="right" v-model="form.goods.realWeight"></el-input-number>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="计费重量" :label-width="formLabelWidth" aria-required>
+                        <el-input-number controls-position="right" v-model="form.goods.weight"></el-input-number>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="报关类型" :label-width="formLabelWidth" aria-required>
+                        <el-select v-model="form.goods.ifCustoms" filterable
+                            placeholder="报关类型" size="large">
+                            <el-option label="单证报关" value="1" />
+                            <el-option label="买单报关" value="0" />
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                    <el-form-item label="备注" :label-width="formLabelWidth" aria-required>
+                        <el-input type="textarea" :row="5" v-model="form.goods.ps"
+                            placeholder="海关编码、用途等描述信息"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="入库图片" :label-width="formLabelWidth">
+                        <el-upload class="avatar-uploader" :action="uploadImgUrl" name="files" :headers="imgHeader"
+                            :show-file-list="false" :on-success="handleAvatarSuccess">
+                            <img v-if="imageUrl" :src="imageUrl" class="avatar" />
+                            <el-icon v-else class="avatar-uploader-icon">
+                                <Plus />
+                            </el-icon>
+                        </el-upload>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="出库图片" :label-width="formLabelWidth">
+                        <el-input type="textarea" :row="5" v-model="form.goods.ps"
+                            placeholder="海关编码、用途等描述信息"></el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
         </el-form>
         <template #footer>
             <span class="dialog-footer">
@@ -86,11 +205,17 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus';
+import { ElMessage, UploadProps } from 'element-plus';
 import { reactive, ref } from "vue";
-import { apiAddOrder, apiGetOrder, apiSetOrder } from "../../api";
+import { apiAddOrder, apiGetOrder, apiSetOrder, baseURL } from "../../api";
 import countryOption from './country';
 
+
+const uploadImgUrl = `${baseURL}/v1/upload`;
+const imageUrl = ref("");
+const imgHeader = ref({
+    zhtoken: localStorage.getItem("zh_token"),
+});
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
 const stateOptions = [
@@ -122,10 +247,13 @@ const stateOptions = [
 
 const form = reactive({
     orderId: "",
+    suplierId: "",
     state: '0',
     time: new Date(),
     destination: "",
     ps: "",
+    inHouseTime: "",
+    warehouse: "",  // 仓库信息
     shipper: {
         contactPeople: "",
         companyName: "",
@@ -136,6 +264,7 @@ const form = reactive({
         contactPeople: "",
         companyName: "",
         tel: "",
+        email: "",
         addr: "",
         zipCode: "",
         country: "",
@@ -147,6 +276,11 @@ const form = reactive({
         height: '',
         weight: '',
         number: '',
+        realWeight: '',
+        ifCustoms: '',
+        ps: '',
+        inPic: '',
+        outPic: '',
     }
 });
 const disabledModify = ref(false);
@@ -178,6 +312,12 @@ const beforeClose = (done: () => void) => {
     clearDialog();
     done();
 };
+
+const getId = () => {
+    let id = Math.floor(Math.random() * 100);
+    const date = new Date();
+    form.orderId = "ZHWL" + date.getFullYear() + date.getMonth() + date.getDate() + id;
+}
 
 const checkRequiredFields = () => {
     const requiredFields: any = {
@@ -222,6 +362,7 @@ const checkRequiredFields = () => {
 
 const clearDialog = () => {
     form.orderId = "";
+    form.suplierId = "";
     form.state = "0";
     form.time = new Date();
     form.destination = "";
@@ -235,6 +376,7 @@ const clearDialog = () => {
     form.receiver = {
         contactPeople: "",
         companyName: "",
+        email: "",
         tel: "",
         addr: "",
         zipCode: "",
@@ -245,8 +387,13 @@ const clearDialog = () => {
         length: '',
         width: '',
         height: '',
+        realWeight: '',
         weight: '',
         number: '',
+        ifCustoms: '',
+        ps: '',
+        inPic: '',
+        outPic: '',
     };
     disabledModify.value = false;
 };
@@ -297,6 +444,15 @@ const submit = () => {
         })
     }
 };
+const handleAvatarSuccess: UploadProps["onSuccess"] = (
+    response: any,
+    uploadFile: any
+) => {
+    imageUrl.value = URL.createObjectURL(uploadFile.raw!);
+    if (response.code >= 0) {
+        form.goods.inPic = response.data.imgurl;
+    }
+};
 
 defineExpose({ show, close });
 </script>
@@ -314,8 +470,10 @@ defineExpose({ show, close });
 }
 
 .stit {
-    padding: 8px 0;
+    padding: 8px;
     font-weight: 600;
+    background-color: #f1f1f1;
+    margin-bottom: 8px;
 }
 </style>
 

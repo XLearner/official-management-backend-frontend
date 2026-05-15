@@ -192,6 +192,12 @@ const items: any = [
         title: '用户管理',
         permiss: '13',
     },
+    {
+        icon: 'Warning',
+        index: '/permission',
+        title: '权限管理',
+        permiss: '13',
+    },
     // {
     //     icon: 'CoffeeCup',
     //     index: '/donate',

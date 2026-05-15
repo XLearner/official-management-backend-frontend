@@ -254,6 +254,16 @@ const routes: RouteRecordRaw[] = [
         component: () =>
           import(/* webpackChunkName: "import" */ "../views/track/index.vue"),
       },
+      {
+        path: "/order-detail",
+        name: "orderDetail",
+        meta: {
+          title: "订单详情",
+          permiss: "11",
+        },
+        component: () =>
+          import(/* webpackChunkName: "import" */ "../views/track/orderDetail.vue"),
+      },
     ],
   },
   {

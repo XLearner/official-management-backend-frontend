@@ -1,10 +1,11 @@
 import { AxiosResponse } from "axios";
 import request from "../utils/request";
 import qs from "qs";
-export const baseURL = "http://www.zhonghanlogistics.cn:8903";
-// export const baseURL = "http://localhost:8903"
+// export const baseURL = "http://www.zhonghanlogistics.cn:8903";
+export const baseURL = "http://localhost:8903";
 
-const filterRes = (res: AxiosResponse<any, any>) => res.status === 200 && res.data
+const filterRes = (res: AxiosResponse<any, any>) =>
+  res.status === 200 && res.data;
 
 export const checkLogin = () => {
   return request({
@@ -334,3 +335,12 @@ export const apiDeleteUser = (params: Record<string, string>) => {
     data: qs.stringify(params),
   }).then(filterRes);
 };
+
+// 菜单数据
+export const apiGetNav = (name: string) => {
+  return request({
+    url: `${baseURL}/v1/get/nav`,
+    method: "get",
+    params: { name },
+  }).then(filterRes);
+}
