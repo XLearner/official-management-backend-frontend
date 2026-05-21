@@ -8,7 +8,7 @@
       <el-form-item label="图片" :label-width="formLabelWidth">
         <el-upload
           class="avatar-uploader"
-          action="http://43.139.70.11:8903/v1/upload"
+          :action="uploadImgUrl"
           name="files"
           :headers="imgHeader"
           :show-file-list="false"
@@ -41,8 +41,11 @@
 // @ts-ignore
 import { ElMessage, UploadProps } from "element-plus";
 import { reactive, ref } from "vue";
-import { apiAddAdvantage, apiSetAdvantage } from "../../api";
+import { apiAddAdvantage, apiSetAdvantage, baseURL } from "../../api";
+import { useImgBaseUrl } from "../../utils/useImgBaseUrl";
 
+const { imgBaseUrl, extractImgBaseUrl, getImgUrl } = useImgBaseUrl();
+const uploadImgUrl = `${baseURL}/v1/upload`;
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
 const imageUrl = ref("");
@@ -66,10 +69,10 @@ const show = (info?: any) => {
   if (info) {
     Object.assign(form, {
       ...info,
-      img: new URL(info.img).pathname,
+      img: info.img?.startsWith('http') ? new URL(info.img).pathname : (info.img || ''),
       ifShow: info.ifShow === "1" ? true : false,
     });
-    imageUrl.value = info.img
+    imageUrl.value = getImgUrl(info.img)
     modifyId.value = info.id;
   }
 };
@@ -94,8 +97,9 @@ const handleAvatarSuccess: UploadProps["onSuccess"] = (
   uploadFile
 ) => {
   imageUrl.value = URL.createObjectURL(uploadFile.raw!);
+  imgBaseUrl.value = extractImgBaseUrl(response) || imgBaseUrl.value;
   if (response.code >= 0) {
-    form.img = response.data.imgurl;
+    form.img = response.data?.imgurl || '';
   }
 };
 const submit = () => {

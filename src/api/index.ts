@@ -277,6 +277,12 @@ export const apiDeleteTrack = (params: Record<string, string>) => {
 };
 
 // 订单信息
+export const apiGenerateOrderId = () => {
+  return request({
+    url: `${baseURL}/v1/generate/orderId`,
+    method: "get",
+  }).then(filterRes);
+};
 export const apiGetOrder = (id?: string) => {
   return request({
     url: `${baseURL}/v1/get/order`,
@@ -301,6 +307,42 @@ export const apiSetOrder = (params: any) => {
 export const apiDeleteOrder = (params: Record<string, string>) => {
   return request({
     url: `${baseURL}/v1/delete/order`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiGetOrders = () => {
+  return request({
+    url: `${baseURL}/v1/get/order`,
+    method: "get",
+  }).then(filterRes);
+};
+
+// 货物信息
+export const apiGetGoods = (orderId: string) => {
+  return request({
+    url: `${baseURL}/v1/get/goods`,
+    method: "get",
+    params: { orderId },
+  }).then(filterRes);
+};
+export const apiAddGoods = (params: any) => {
+  return request({
+    url: `${baseURL}/v1/add/goods`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiSetGoods = (params: any) => {
+  return request({
+    url: `${baseURL}/v1/set/goods`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiDeleteGoods = (params: Record<string, string>) => {
+  return request({
+    url: `${baseURL}/v1/delete/goods`,
     method: "post",
     data: qs.stringify(params),
   }).then(filterRes);

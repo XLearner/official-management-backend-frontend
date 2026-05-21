@@ -42,6 +42,7 @@ import Editor from '../../components/editor.vue';
 import { ElMessage, UploadProps } from 'element-plus';
 import { reactive, ref } from "vue";
 import { apiAddNews, apiSetNews, baseURL } from "../../api";
+import { useImgBaseUrl } from "../../utils/useImgBaseUrl";
 
 const uploadImgUrl = `${baseURL}/v1/upload`;
 const formLabelWidth = "140px";
@@ -52,6 +53,7 @@ const imgHeader = ref({
   zhtoken: localStorage.getItem("zh_token"),
 });
 const modifyId = ref(0);
+const { imgBaseUrl, extractImgBaseUrl, getImgUrl } = useImgBaseUrl();
 
 const transTime = (date: Date) => {
   const time = new Date(date);
@@ -73,15 +75,16 @@ const form = reactive({
 });
 const emits = defineEmits(["success"]);
 
-const show = (info?: any) => {
+const show = (info?: any, baseUrl?: string) => {
   dialogFormVisible.value = true;
   if (info) {
+    if (baseUrl) imgBaseUrl.value = baseUrl;
     Object.assign(form, {
       ...info,
       time: transDate(info.time),
-      outImg: new URL(info.outImg).pathname,
+      outImg: info.outImg?.startsWith('http') ? new URL(info.outImg).pathname : (info.outImg || ''),
     });
-    imageUrl.value = info.outImg;
+    imageUrl.value = getImgUrl(info.outImg);
     modifyId.value = info.id;
 
     // console.log((editorRef as any).value, (editorRef as any).value.setHtml);
@@ -115,15 +118,15 @@ const handleAvatarSuccess: UploadProps["onSuccess"] = (
   uploadFile
 ) => {
   imageUrl.value = URL.createObjectURL(uploadFile.raw!);
+  imgBaseUrl.value = extractImgBaseUrl(response) || imgBaseUrl.value;
   if (response.code >= 0) {
-    form.outImg = response.data.imgurl;
+    form.outImg = response.data?.imgurl || '';
   }
 };
 
 const submit = () => {
   const content = (editorRef as any).value.getHtml();
   if (modifyId.value > 0) {
-    // const imgurl = new URL(form.outImg).pathname;
     apiSetNews({
       id: form.id,
       outImg: form.outImg,

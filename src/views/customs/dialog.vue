@@ -42,7 +42,9 @@
 import { ElMessage, UploadProps } from "element-plus";
 import { reactive, ref } from "vue";
 import { apiAddCustom, apiSetCustom, baseURL } from "../../api";
+import { useImgBaseUrl } from "../../utils/useImgBaseUrl";
 
+const { imgBaseUrl, extractImgBaseUrl, getImgUrl } = useImgBaseUrl();
 const uploadImgUrl = `${baseURL}/v1/upload`;
 const formLabelWidth = "140px";
 const dialogFormVisible = ref(false);
@@ -67,10 +69,10 @@ const show = (info?: any) => {
   if (info) {
     Object.assign(form, {
       ...info,
-      logo: new URL(info.logo).pathname,
+      logo: info.logo?.startsWith('http') ? new URL(info.logo).pathname : (info.logo || ''),
       ifShow: info.ifShow === "1" ? true : false,
     });
-    imageUrl.value = info.logo
+    imageUrl.value = getImgUrl(info.logo)
     modifyId.value = info.id;
   }
 };
@@ -95,8 +97,9 @@ const handleAvatarSuccess: UploadProps["onSuccess"] = (
   uploadFile: any
 ) => {
   imageUrl.value = URL.createObjectURL(uploadFile.raw!);
+  imgBaseUrl.value = extractImgBaseUrl(response) || imgBaseUrl.value;
   if (response.code >= 0) {
-    form.logo = response.data.imgurl;
+    form.logo = response.data?.imgurl || '';
   }
 };
 const submit = () => {

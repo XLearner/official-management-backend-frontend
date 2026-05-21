@@ -9,7 +9,7 @@
                 <el-card v-for="item in currentBanners" :body-style="{ padding: '0px' }" :key="item.id"
                     class="horizon-item">
                     <div class="img-box">
-                        <img :src="item.imgurl" class="image" />
+                        <img :src="getImgUrl(item.imgurl)" class="image" />
                     </div>
                     <div style="padding: 14px">
                         <h4>{{ item.title }}</h4>
@@ -33,7 +33,10 @@ import { ElLoading, ElMessage } from 'element-plus';
 import { Delete, Edit } from "@element-plus/icons-vue";
 import { onMounted, ref } from 'vue';
 import { apiDeleteBanner, apiGetBanner } from '../../api/index'
+import { useImgBaseUrl } from '../../utils/useImgBaseUrl'
 import SelfDialog from './dialog.vue'
+
+const { imgBaseUrl, extractImgBaseUrl, getImgUrl } = useImgBaseUrl();
 
 const DialogRef = ref<any>(null);
 
@@ -62,7 +65,8 @@ const showDialog = () => {
 const getBanner = () => {
     return apiGetBanner().then((res) => {
         if (res.code >= 0) {
-            currentBanners.value = res.data;
+            imgBaseUrl.value = extractImgBaseUrl(res) || imgBaseUrl.value;
+            currentBanners.value = Array.isArray(res.data) ? res.data : (res.data?.list || []);
         }
     });
 };

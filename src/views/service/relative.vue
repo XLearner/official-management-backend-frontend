@@ -39,6 +39,7 @@ import Editor from '../../components/editor.vue';
 import { ElMessage, UploadProps } from "element-plus";
 import { reactive, ref } from "vue";
 import { apiAddRelative, apiSetRelative, baseURL } from "../../api";
+import { useImgBaseUrl } from "../../utils/useImgBaseUrl";
 
 const uploadImgUrl = `${baseURL}/v1/upload`;
 const formLabelWidth = "140px";
@@ -49,6 +50,7 @@ const imgHeader = ref({
   zhtoken: localStorage.getItem("zh_token"),
 });
 const modifyId = ref(0);
+const { imgBaseUrl, extractImgBaseUrl, getImgUrl } = useImgBaseUrl();
 
 const form = reactive({
   id: "",
@@ -66,9 +68,9 @@ const show = (info?: any) => {
     Object.assign(form, {
       ...info,
       ifShow: info.ifShow === "1" ? true : false,
-      img: new URL(info.img).pathname,
+      img: info.img?.startsWith('http') ? new URL(info.img).pathname : (info.img || ''),
     });
-    imageUrl.value = info.img;
+    imageUrl.value = getImgUrl(info.img);
     modifyId.value = info.id;
 
     // console.log((editorRef as any).value, (editorRef as any).value.setHtml);
@@ -102,14 +104,14 @@ const handleAvatarSuccess: UploadProps["onSuccess"] = (
   uploadFile
 ) => {
   imageUrl.value = URL.createObjectURL(uploadFile.raw!);
+  imgBaseUrl.value = extractImgBaseUrl(response) || imgBaseUrl.value;
   if (response.code >= 0) {
-    form.img = response.data.imgurl;
+    form.img = response.data?.imgurl || '';
   }
 };
 const submit = () => {
   const description = (editorRef as any).value.getHtml();
   if (modifyId.value > 0) {
-    // const imgurl = new URL(form.img).pathname;
     apiSetRelative({
       id: form.id,
       img: form.img,

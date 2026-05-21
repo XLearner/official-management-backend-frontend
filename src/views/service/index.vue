@@ -9,7 +9,7 @@
                     :key="item.id">
                     <div class="horizon-item">
                         <div class="img-box">
-                            <img :src="item.img" class="image" />
+                            <img :src="getImgUrl(item.img)" class="image" />
                         </div>
                         <div class="txt-box">
                             <div style="padding: 14px">
@@ -38,8 +38,10 @@ import { Delete, Edit } from "@element-plus/icons-vue";
 import { onMounted, ref } from 'vue';
 import { apiDeleteRelative, apiGetRelative } from '../../api/index'
 import RelativeServiceDialog from './relative.vue'
+import { useImgBaseUrl } from '../../utils/useImgBaseUrl'
 
 const RelativeRef = ref<any>(null);
+const { imgBaseUrl, extractImgBaseUrl, getImgUrl } = useImgBaseUrl();
 
 const loadOpt = {
     lock: true,
@@ -62,6 +64,7 @@ const currentRelatives = ref<
 const getRelative = () => {
     return apiGetRelative().then((res) => {
         if (res.code >= 0) {
+            imgBaseUrl.value = extractImgBaseUrl(res) || imgBaseUrl.value;
             currentRelatives.value = res.data;
         }
     });

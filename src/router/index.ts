@@ -245,14 +245,14 @@ const routes: RouteRecordRaw[] = [
           import(/* webpackChunkName: "import" */ "../views/import.vue"),
       },
       {
-        path: "/track",
-        name: "track",
+        path: "/order",
+        name: "order",
         meta: {
-          title: "轨迹追踪",
+          title: "订单管理",
           permiss: "11",
         },
         component: () =>
-          import(/* webpackChunkName: "import" */ "../views/track/index.vue"),
+          import(/* webpackChunkName: "order" */ "../views/order/index.vue"),
       },
       {
         path: "/order-detail",
@@ -262,7 +262,7 @@ const routes: RouteRecordRaw[] = [
           permiss: "11",
         },
         component: () =>
-          import(/* webpackChunkName: "import" */ "../views/track/orderDetail.vue"),
+          import(/* webpackChunkName: "orderDetail" */ "../views/order/orderDetail.vue"),
       },
     ],
   },
