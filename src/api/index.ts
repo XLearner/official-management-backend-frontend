@@ -1,10 +1,11 @@
 import { AxiosResponse } from "axios";
 import request from "../utils/request";
 import qs from "qs";
-export const baseURL = "http://www.zhonghanlogistics.cn:8903";
-// export const baseURL = "http://localhost:8903"
+// export const baseURL = "http://www.zhonghanlogistics.cn:8903";
+export const baseURL = "http://localhost:8903";
 
-const filterRes = (res: AxiosResponse<any, any>) => res.status === 200 && res.data
+const filterRes = (res: AxiosResponse<any, any>) =>
+  res.status === 200 && res.data;
 
 export const checkLogin = () => {
   return request({
@@ -36,10 +37,10 @@ export const apiGetBaseInfo = (name: string) => {
     url: `${baseURL}/v1/get/info`,
     method: "get",
     params: {
-      name
-    }
+      name,
+    },
   }).then(filterRes);
-}
+};
 
 export const apiSaveBaseInfo = (params: Record<string, string>) => {
   return request({
@@ -47,7 +48,7 @@ export const apiSaveBaseInfo = (params: Record<string, string>) => {
     method: "post",
     data: qs.stringify(params),
   }).then(filterRes);
-}
+};
 
 export const apiGetBanner = () => {
   return request({
@@ -103,11 +104,11 @@ export const apiDeleteHighlightBusi = (params: Record<string, string>) => {
 
 // 合作客户
 export const apiGetCustom = () => {
-    return request({
-      url: `${baseURL}/v1/get/custom`,
-      method: "get",
-    }).then(filterRes);
-}
+  return request({
+    url: `${baseURL}/v1/get/custom`,
+    method: "get",
+  }).then(filterRes);
+};
 export const apiAddCustom = (params: Record<string, string>) => {
   return request({
     url: `${baseURL}/v1/add/custom`,
@@ -132,11 +133,11 @@ export const apiDeleteCustom = (params: Record<string, string>) => {
 
 // 优势内容
 export const apiGetAdvantage = () => {
-    return request({
-      url: `${baseURL}/v1/get/advantage`,
-      method: "get",
-    }).then(filterRes);
-}
+  return request({
+    url: `${baseURL}/v1/get/advantage`,
+    method: "get",
+  }).then(filterRes);
+};
 export const apiAddAdvantage = (params: Record<string, string>) => {
   return request({
     url: `${baseURL}/v1/add/advantage`,
@@ -161,11 +162,11 @@ export const apiDeleteAdvantage = (params: Record<string, string>) => {
 
 // 相关服务
 export const apiGetRelative = () => {
-    return request({
-      url: `${baseURL}/v1/get/relativeService`,
-      method: "get",
-    }).then(filterRes);
-}
+  return request({
+    url: `${baseURL}/v1/get/relativeService`,
+    method: "get",
+  }).then(filterRes);
+};
 export const apiAddRelative = (params: Record<string, string>) => {
   return request({
     url: `${baseURL}/v1/add/relativeService`,
@@ -190,11 +191,11 @@ export const apiDeleteRelative = (params: Record<string, string>) => {
 
 // 新闻动态
 export const apiGetNews = () => {
-    return request({
-      url: `${baseURL}/v1/get/news`,
-      method: "get",
-    }).then(filterRes);
-}
+  return request({
+    url: `${baseURL}/v1/get/news`,
+    method: "get",
+  }).then(filterRes);
+};
 export const apiAddNews = (params: Record<string, string>) => {
   return request({
     url: `${baseURL}/v1/add/news`,
@@ -219,11 +220,11 @@ export const apiDeleteNews = (params: Record<string, string>) => {
 
 // 招聘信息
 export const apiGetRecruit = () => {
-    return request({
-      url: `${baseURL}/v1/get/recruit`,
-      method: "get",
-    }).then(filterRes);
-}
+  return request({
+    url: `${baseURL}/v1/get/recruit`,
+    method: "get",
+  }).then(filterRes);
+};
 export const apiAddRecruit = (params: Record<string, string>) => {
   return request({
     url: `${baseURL}/v1/add/recruit`,
@@ -252,8 +253,8 @@ export const apiGetTrack = () => {
     url: `${baseURL}/v1/get/track`,
     method: "get",
   }).then(filterRes);
-}
-export const apiAddTrack = (params: Record<string, string>) => {
+};
+export const apiAddTrack = (params: any) => {
   return request({
     url: `${baseURL}/v1/add/track`,
     method: "post",
@@ -274,3 +275,114 @@ export const apiDeleteTrack = (params: Record<string, string>) => {
     data: qs.stringify(params),
   }).then(filterRes);
 };
+
+// 订单信息
+export const apiGenerateOrderId = () => {
+  return request({
+    url: `${baseURL}/v1/generate/orderId`,
+    method: "get",
+  }).then(filterRes);
+};
+export const apiGetOrder = (id?: string) => {
+  return request({
+    url: `${baseURL}/v1/get/order`,
+    method: "get",
+    params: { id: id },
+  }).then(filterRes);
+};
+export const apiAddOrder = (params: any) => {
+  return request({
+    url: `${baseURL}/v1/add/order`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiSetOrder = (params: any) => {
+  return request({
+    url: `${baseURL}/v1/set/order`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiDeleteOrder = (params: Record<string, string>) => {
+  return request({
+    url: `${baseURL}/v1/delete/order`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiGetOrders = () => {
+  return request({
+    url: `${baseURL}/v1/get/order`,
+    method: "get",
+  }).then(filterRes);
+};
+
+// 货物信息
+export const apiGetGoods = (orderId: string) => {
+  return request({
+    url: `${baseURL}/v1/get/goods`,
+    method: "get",
+    params: { orderId },
+  }).then(filterRes);
+};
+export const apiAddGoods = (params: any) => {
+  return request({
+    url: `${baseURL}/v1/add/goods`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiSetGoods = (params: any) => {
+  return request({
+    url: `${baseURL}/v1/set/goods`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiDeleteGoods = (params: Record<string, string>) => {
+  return request({
+    url: `${baseURL}/v1/delete/goods`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+
+// 用户信息
+export const apiGetUsers = (id?: string) => {
+  return request({
+    url: `${baseURL}/v1/get/users`,
+    method: "get",
+    params: { id: id },
+  }).then(filterRes);
+};
+export const apiAddUser = (params: Record<string, string>) => {
+  return request({
+    url: `${baseURL}/v1/add/user`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiSetUser = (params: Record<string, string>) => {
+  return request({
+    url: `${baseURL}/v1/set/user`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+export const apiDeleteUser = (params: Record<string, string>) => {
+  return request({
+    url: `${baseURL}/v1/delete/user`,
+    method: "post",
+    data: qs.stringify(params),
+  }).then(filterRes);
+};
+
+// 菜单数据
+export const apiGetNav = (name: string) => {
+  return request({
+    url: `${baseURL}/v1/get/nav`,
+    method: "get",
+    params: { name },
+  }).then(filterRes);
+}

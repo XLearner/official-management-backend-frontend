@@ -106,8 +106,8 @@ const items: any = [
     },
     {
         icon: 'Position',
-        index: '/track',
-        title: '轨迹追踪',
+        index: '/order',
+        title: '订单管理',
         permiss: '11',
     },
     // {
@@ -186,12 +186,18 @@ const items: any = [
     //     title: 'schart图表',
     //     permiss: '11',
     // },
-    // {
-    //     icon: 'Warning',
-    //     index: '/permission',
-    //     title: '权限管理',
-    //     permiss: '13',
-    // },
+    {
+        icon: 'UserFilled',
+        index: '/usermanage',
+        title: '用户管理',
+        permiss: '13',
+    },
+    {
+        icon: 'Warning',
+        index: '/permission',
+        title: '权限管理',
+        permiss: '13',
+    },
     // {
     //     icon: 'CoffeeCup',
     //     index: '/donate',

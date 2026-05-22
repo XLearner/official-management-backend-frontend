@@ -7,7 +7,7 @@
       <div class="horizon-box">
         <el-card v-for="item in currentAdvantages" :body-style="{ padding: '0px' }" :key="item.id" class="horizon-item">
           <div class="img-box">
-            <img :src="item.img" class="image" />
+            <img :src="getImgUrl(item.img)" class="image" />
           </div>
           <div style="padding: 14px">
             <div class="bottom">
@@ -37,8 +37,10 @@ import {
   apiGetNews,
 } from "../../api/index";
 import AdvantageDialog from "./dialog.vue";
+import { useImgBaseUrl } from '../../utils/useImgBaseUrl';
 
 const AdvantageRef = ref<any>(null);
+const { imgBaseUrl, extractImgBaseUrl, getImgUrl } = useImgBaseUrl();
 
 const loadOpt = {
   lock: true,
@@ -61,6 +63,7 @@ const showAdvantageDialog = (info?: any) => {
 const getAdvantage = () => {
   return apiGetAdvantage().then((res) => {
     if (res.code >= 0) {
+      imgBaseUrl.value = extractImgBaseUrl(res) || imgBaseUrl.value;
       currentAdvantages.value = res.data;
     }
   });

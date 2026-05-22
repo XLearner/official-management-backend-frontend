@@ -9,7 +9,7 @@
                 <el-card v-for="item in currentCustoms" :body-style="{ padding: '0px' }" :key="item.id"
                     class="horizon-item">
                     <div class="img-box">
-                        <img :src="item.logo" class="image" />
+                        <img :src="getImgUrl(item.logo)" class="image" />
                     </div>
                     <div style="padding: 14px">
                         <h4>{{ item.title }}</h4>
@@ -33,7 +33,10 @@ import { ElLoading, ElMessage } from 'element-plus';
 import { Delete, Edit } from "@element-plus/icons-vue";
 import { onMounted, ref } from 'vue';
 import { apiDeleteCustom, apiGetCustom } from '../../api/index'
+import { useImgBaseUrl } from '../../utils/useImgBaseUrl'
 import SelfDialog from './dialog.vue'
+
+const { imgBaseUrl, extractImgBaseUrl, getImgUrl } = useImgBaseUrl();
 
 const DialogRef = ref<any>(null);
 
@@ -62,7 +65,8 @@ const showDialog = (info?: any) => {
 const getCustom = () => {
     return apiGetCustom().then((res) => {
         if (res.code >= 0) {
-            currentCustoms.value = res.data;
+            imgBaseUrl.value = extractImgBaseUrl(res) || imgBaseUrl.value;
+            currentCustoms.value = Array.isArray(res.data) ? res.data : (res.data?.list || []);
         }
     });
 };

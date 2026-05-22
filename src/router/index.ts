@@ -152,6 +152,18 @@ const routes: RouteRecordRaw[] = [
           import(/* webpackChunkName: "donate" */ "../views/donate.vue"),
       },
       {
+        path: "/usermanage",
+        name: "usermanage",
+        meta: {
+          title: "用户管理",
+          permiss: "13",
+        },
+        component: () =>
+          import(
+            /* webpackChunkName: "usermanage" */ "../views/user/index.vue"
+          ),
+      },
+      {
         path: "/permission",
         name: "permission",
         meta: {
@@ -160,7 +172,7 @@ const routes: RouteRecordRaw[] = [
         },
         component: () =>
           import(
-            /* webpackChunkName: "permission" */ "../views/permission.vue"
+            /* webpackChunkName: "usermanage" */ "../views/_permission.vue"
           ),
       },
       {
@@ -233,14 +245,24 @@ const routes: RouteRecordRaw[] = [
           import(/* webpackChunkName: "import" */ "../views/import.vue"),
       },
       {
-        path: "/track",
-        name: "track",
+        path: "/order",
+        name: "order",
         meta: {
-          title: "轨迹追踪",
+          title: "订单管理",
           permiss: "11",
         },
         component: () =>
-          import(/* webpackChunkName: "import" */ "../views/track/index.vue"),
+          import(/* webpackChunkName: "order" */ "../views/order/index.vue"),
+      },
+      {
+        path: "/order-detail",
+        name: "orderDetail",
+        meta: {
+          title: "订单详情",
+          permiss: "11",
+        },
+        component: () =>
+          import(/* webpackChunkName: "orderDetail" */ "../views/order/orderDetail.vue"),
       },
     ],
   },

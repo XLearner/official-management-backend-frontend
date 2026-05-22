@@ -35,8 +35,11 @@
   <script setup lang="ts">
   // @ts-ignore
   import { UploadProps } from 'element-plus';
-  import { reactive, ref, defineEmits, defineExpose } from 'vue';
+  import { reactive, ref } from 'vue';
   import { apiSaveBanner, baseURL } from '../../api';
+import { useImgBaseUrl } from '../../utils/useImgBaseUrl';
+
+const { imgBaseUrl, extractImgBaseUrl } = useImgBaseUrl();
   
   const uploadImgUrl = `${baseURL}/v1/upload`;
   const formLabelWidth = "140px";
@@ -77,8 +80,9 @@
     uploadFile: any
   ) => {
     imageUrl.value = URL.createObjectURL(uploadFile.raw!);
+    imgBaseUrl.value = extractImgBaseUrl(response) || imgBaseUrl.value;
     if (response.code >= 0) {
-      form.imgurl = response.data.imgurl;
+      form.imgurl = response.data?.imgurl || '';
     }
   };
   const submit = () => {

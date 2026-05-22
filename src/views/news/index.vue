@@ -33,8 +33,10 @@ import { ElLoading, ElMessage } from 'element-plus';
 import { onMounted, ref } from 'vue';
 import { apiDeleteNews, apiGetNews } from '../../api/index'
 import SelfDialog from './dialog.vue'
+import { useImgBaseUrl } from '../../utils/useImgBaseUrl'
 
 const DialogRef = ref<any>(null);
+const { imgBaseUrl, extractImgBaseUrl } = useImgBaseUrl();
 
 const loadOpt = {
   lock: true,
@@ -55,12 +57,13 @@ const newsList = ref<
 
 const showDialog = (info?: any) => {
   console.log(info.name);
-  DialogRef.value.show(info);
+  DialogRef.value.show(info, imgBaseUrl.value);
 };
 
 const getNews = () => {
   return apiGetNews().then((res) => {
     if (res.code >= 0) {
+      imgBaseUrl.value = extractImgBaseUrl(res) || imgBaseUrl.value;
       newsList.value = res.data.sort((a: {time: number}, b: {time: number}) => b.time - a.time);
     }
   });

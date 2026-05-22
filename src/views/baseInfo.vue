@@ -58,8 +58,10 @@
 import { ElMessage, ElLoading, UploadProps } from "element-plus";
 import { onMounted, reactive, ref } from "vue";
 import { baseURL, apiGetBaseInfo, apiSaveBaseInfo } from "../api";
+import { useImgBaseUrl } from "../utils/useImgBaseUrl";
 
 const FormRef = ref<any>(null);
+const { imgBaseUrl, extractImgBaseUrl, getImgUrl } = useImgBaseUrl();
 const imageUrl = ref("");
 const pubImageUrl = ref("");
 const uploadImgUrl = `${baseURL}/v1/upload`;
@@ -84,11 +86,12 @@ let loading: any = null;
 const getBaseInfo = () => {
   apiGetBaseInfo("中瀚").then((res) => {
     if (res.code >= 0) {
+      imgBaseUrl.value = extractImgBaseUrl(res) || imgBaseUrl.value;
       Object.assign(form, res.data);
-      imageUrl.value = form.logo;
-      pubImageUrl.value = form.descImg;
-      form.logo = new URL(form.logo).pathname;
-      form.descImg = new URL(form.descImg).pathname;
+      imageUrl.value = getImgUrl(form.logo);
+      pubImageUrl.value = getImgUrl(form.descImg);
+      form.logo = form.logo?.startsWith('http') ? new URL(form.logo).pathname : (form.logo || '');
+      form.descImg = form.descImg?.startsWith('http') ? new URL(form.descImg).pathname : (form.descImg || '');
     }
   });
 };
@@ -97,14 +100,16 @@ const handleAvatarSuccess: UploadProps["onSuccess"] = (
   uploadFile
 ) => {
   imageUrl.value = URL.createObjectURL(uploadFile.raw!);
+  imgBaseUrl.value = extractImgBaseUrl(response) || imgBaseUrl.value;
   if (response.code >= 0) {
-    form.logo = response.data.imgurl;
+    form.logo = response.data?.imgurl || '';
   }
 };
 const handlePubSuccess: UploadProps["onSuccess"] = (response, uploadFile) => {
   pubImageUrl.value = URL.createObjectURL(uploadFile.raw!);
+  imgBaseUrl.value = extractImgBaseUrl(response) || imgBaseUrl.value;
   if (response.code >= 0) {
-    form.descImg = response.data.imgurl;
+    form.descImg = response.data?.imgurl || '';
   }
 };
 const submitForm = () => {
