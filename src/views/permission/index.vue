@@ -1,5 +1,5 @@
 <template>
-    <div class="container">
+    <div class="container" v-loading="loading" element-loading-text="加载中...">
         <div class="permission-layout">
             <!-- 左侧：角色列表 -->
             <div class="role-panel">
@@ -39,12 +39,13 @@
                         <span v-if="currentRole" class="current-role-name">— {{ currentRole.name }}</span>
                     </span>
                     <el-button
-                        v-if="currentRole && !isBuiltIn(currentRole)"
+                        v-if="currentRole"
                         type="primary"
                         @click="savePermission"
                         :loading="saving"
+                        :disabled="isBuiltIn(currentRole)"
                     >
-                        保存配置
+                        {{ isBuiltIn(currentRole) ? '内置角色不可修改' : '保存配置' }}
                     </el-button>
                 </div>
 
@@ -91,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { ElMessage, ElTree, FormInstance, FormRules } from 'element-plus';
 import { apiGetRoles, apiAddRole, apiSetRole, apiDeleteRole } from '../../api/index';
 
@@ -100,6 +101,7 @@ const currentRole = ref<any>(null);
 const treeRef = ref<InstanceType<typeof ElTree>>();
 const saving = ref(false);
 const savingRole = ref(false);
+const loading = ref(false);
 const roleDialogVisible = ref(false);
 const editingRole = ref<any>(null);
 const roleFormRef = ref<FormInstance>();
@@ -177,20 +179,32 @@ const checkedKeys = computed(() => {
     return [];
 });
 
-const loadRoles = () => {
-    apiGetRoles().then((res: any) => {
+const loadRoles = async () => {
+    loading.value = true;
+    try {
+        const res: any = await apiGetRoles();
         if (res.code >= 0) {
             roleList.value = res.data || [];
-            // 默认选中第一个
             if (roleList.value.length > 0 && !currentRole.value) {
                 selectRole(roleList.value[0]);
             }
         }
-    });
+    } finally {
+        loading.value = false;
+    }
 };
 
 const selectRole = (role: any) => {
     currentRole.value = role;
+    nextTick(() => {
+        if (treeRef.value) {
+            treeRef.value.setCheckedKeys([]);
+            const keys = checkedKeys.value;
+            keys.forEach((key: string) => {
+                treeRef.value?.setChecked(key, true, false);
+            });
+        }
+    });
 };
 
 const isBuiltIn = (role: any) => {
@@ -203,6 +217,10 @@ const handleCheckChange = () => {
 
 const savePermission = () => {
     if (!currentRole.value) return;
+    if (isBuiltIn(currentRole.value)) {
+        ElMessage.warning('内置角色不可修改');
+        return;
+    }
 
     // 获取所有选中的节点（包括父节点）
     const checkedNodes = treeRef.value?.getCheckedNodes() || [];

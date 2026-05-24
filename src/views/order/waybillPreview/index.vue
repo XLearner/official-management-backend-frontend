@@ -72,7 +72,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { ElLoading, ElMessage } from 'element-plus';
-import { apiGenerateWaybill } from '../../api/index';
+import { apiGenerateWaybill } from '../../../api/index';
 
 const props = defineProps<{
     modelValue: boolean;

@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import { usePermissStore } from "../store/permiss";
 import Home from "../views/home.vue";
-import { checkLogin } from "../api";
+import { checkLogin, apiGetUsers, apiGetRoles } from "../api";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -168,7 +168,7 @@ const routes: RouteRecordRaw[] = [
         name: "permission",
         meta: {
           title: "权限管理",
-          permiss: "13-2",
+          permiss: "13",
         },
         component: () =>
           import(
@@ -305,12 +305,45 @@ router.beforeEach(async (to, from, next) => {
   const role = localStorage.getItem("ms_username");
   const permiss = usePermissStore();
   const status = await checkLogin();
+
   if (!to.path.includes("login") && status.code === -10001) {
     next("/login");
-  } else if (!role && to.path !== "/login") {
+    return;
+  }
+
+  // 已登录用户：从后端加载权限 keys 到 store
+  if (!to.path.includes("login") && status.code >= 0) {
+    try {
+      const [usersRes, rolesRes]: any[] = await Promise.all([
+        apiGetUsers(),
+        apiGetRoles(),
+      ]);
+
+      const user = (usersRes?.data || []).find((u: any) => u.account === role);
+      const roleData = user?.role_id
+        ? (rolesRes?.data || []).find((r: any) => r.id === user.role_id)
+        : null;
+
+      let keys: string[] = [];
+      if (roleData) {
+        try { keys = JSON.parse(roleData.keys); } catch {}
+      }
+
+      // 无角色用户给予最小权限兜底
+      if (keys.length === 0) {
+        keys = ['1'];
+      }
+
+      permiss.handleSet(keys);
+      localStorage.setItem('ms_keys', JSON.stringify(keys));
+    } catch (err) {
+      console.error('路由守卫加载权限失败', err);
+    }
+  }
+
+  if (!role && to.path !== "/login") {
     next("/login");
   } else if (to.meta.permiss && !permiss.key.includes(to.meta.permiss)) {
-    // 如果没有权限，则进入403
     next("/403");
   } else {
     next();

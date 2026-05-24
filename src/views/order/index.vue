@@ -433,7 +433,7 @@
 <script setup lang="ts">
 import { ElLoading, ElMessage, UploadProps } from 'element-plus';
 import { Check, Delete, Plus } from '@element-plus/icons-vue';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import {
     apiGetOrders, apiGetOrder, apiAddOrder, apiSetOrder, apiDeleteOrder,
     apiGetGoods, apiAddGoods, apiSetGoods, apiDeleteGoods,
@@ -455,7 +455,6 @@ const loadOpt = {
 };
 
 // ============== Order List State ==============
-const tableData = ref<any[]>([]);
 const orderList = ref<any[]>([]);
 const stateList = ref<any>({
     state1: [], state2: [], state3: [], state4: [], state5: [], state6: [],
@@ -467,28 +466,41 @@ const selectedOrders = ref<any[]>([]);
 const filterDateRange = ref<string[]>([]);
 const filterDestination = ref('');
 
-const totalPage = computed(() => {
-    return getFilteredList().length;
-});
-
+// ============== Filter helper ==============
 const getFilteredList = () => {
-    let list = stateOn.value == 100 ? orderList.value : stateList.value[`state${stateOn.value + 1}`];
+    let list = stateOn.value === 100
+        ? orderList.value
+        : stateList.value[`state${stateOn.value + 1}`] || [];
+
     if (filterDateRange.value && filterDateRange.value.length === 2) {
         const [start, end] = filterDateRange.value;
-        list = list.filter(item => {
+        list = list.filter((item: any) => {
             if (!item.updateTime) return false;
             const d = new Date(parseInt(item.updateTime)).toISOString().slice(0, 10);
             return d >= start && d <= end;
         });
     }
     if (filterDestination.value) {
-        list = list.filter(item => item.destination === filterDestination.value);
+        list = list.filter((item: any) => item.destination === filterDestination.value);
     }
     return list;
 };
 
+const totalPage = ref(0);
+const tableData = ref<any[]>([]);
+
+const refreshTable = () => {
+    const filtered = getFilteredList();
+    totalPage.value = filtered.length;
+    const start = (currentPage.value - 1) * pageSize.value;
+    tableData.value = filtered.slice(start, start + pageSize.value);
+};
+
+watch([orderList, stateOn, currentPage, pageSize, filterDateRange, filterDestination], refreshTable, { deep: true });
+
 const applyFilters = () => {
-    handleCurrentChange(1);
+    currentPage.value = 1;
+    refreshTable();
 };
 
 const enumState = ['待上网', '运输中', '派送中', '投递失败', '成功签收', '可能异常'];
@@ -563,27 +575,27 @@ const formatInHouseTime = (row: any) => {
 // ============== Pagination & Filter ==============
 const handleSizeChange = (val: number) => {
     pageSize.value = val;
-    handleCurrentChange(currentPage.value);
+    currentPage.value = 1;
+    refreshTable();
 };
 const handleCurrentChange = (val: number) => {
-    const start = (currentPage.value - 1) * pageSize.value;
-    const end = currentPage.value * pageSize.value;
-    tableData.value = getFilteredList().slice(start, end);
+    currentPage.value = val;
+    refreshTable();
 };
 const switchList = (index: number) => {
     stateOn.value = index;
     currentPage.value = 1;
-    handleCurrentChange(1);
+    refreshTable();
 };
 
 // ============== Fetch Orders ==============
 const getOrders = () => {
     filterDateRange.value = [];
-    filterDestination.value = [];
+    filterDestination.value = '';
     selectedOrders.value = [];
-    return apiGetOrders().then((res) => {
-        const dataList = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
-        if (res.code >= 0 && dataList.length > 0) {
+    return apiGetOrders().then((res: any) => {
+        const dataList = Array.isArray(res?.data) ? res.data : (res?.data ? [res.data] : []);
+        if (res?.code >= 0 && dataList.length > 0) {
             const tempStateList: any = {
                 state1: [], state2: [], state3: [], state4: [], state5: [], state6: [],
             };
@@ -601,7 +613,9 @@ const getOrders = () => {
             });
             stateList.value = tempStateList;
             switchList(stateOn.value);
+        } else {
         }
+    }).catch((err: any) => {
     });
 };
 
@@ -992,8 +1006,13 @@ const saveOrder = () => {
 
 // ============== Init ==============
 onMounted(() => {
-    const loading = ElLoading.service(loadOpt);
-    getOrders().finally(() => loading.close());
+    try {
+        const loading = ElLoading.service(loadOpt);
+        getOrders().finally(() => {
+            loading.close();
+        });
+    } catch (e) {
+    }
 });
 </script>
 
