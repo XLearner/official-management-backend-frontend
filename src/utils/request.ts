@@ -29,11 +29,7 @@ service.interceptors.request.use(
 
 service.interceptors.response.use(
   (response: AxiosResponse) => {
-    if (response.status === 200) {
-      return response;
-    } else {
-      Promise.reject();
-    }
+    return response;
   },
   (error: AxiosError) => {
     console.log(error);

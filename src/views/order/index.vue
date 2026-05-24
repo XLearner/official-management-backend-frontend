@@ -12,9 +12,35 @@
                             item }}({{ stateList[`state${index + 1}`].length }})</el-link>
                     </template>
                 </div>
+                <div class="toolbar">
+                    <el-date-picker
+                        v-model="filterDateRange"
+                        type="daterange"
+                        range-separator="至"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        value-format="YYYY-MM-DD"
+                        size="small"
+                        style="width: 240px; margin-right: 10px;"
+                        @change="applyFilters"
+                    />
+                    <el-select
+                        v-model="filterDestination"
+                        filterable
+                        clearable
+                        placeholder="目的国"
+                        size="small"
+                        style="width: 160px; margin-right: 10px;"
+                        @change="applyFilters"
+                    >
+                        <el-option v-for="item in countryOption" :key="item.code" :label="item.name_zh" :value="item.code" />
+                    </el-select>
+                    <span style="margin-right: 10px; font-size: 13px;">已选 {{ selectedOrders.length }} 笔</span>
+                    <el-button type="success" size="small" :disabled="selectedOrders.length === 0" @click="exportBill">导出账单</el-button>
+                </div>
                 <el-table :data="tableData" border :default-sort="{ prop: 'updateTime', order: 'descending' }"
-                    style="width: 100%">
-                    <el-table-column type="index" label="序号" width="80" align="center" />
+                    style="width: 100%" @selection-change="handleSelectionChange">
+                    <el-table-column type="selection" width="40" />
                     <el-table-column label="运单号" align="center">
                         <template #default="scope">
                             {{ scope.row.orderId }}
@@ -28,8 +54,10 @@
                     <el-table-column prop="inHouseTime" label="入仓时间" sortable align="center" :formatter="formatInHouseTime" />
                     <el-table-column prop="goodsName" label="商品名称" sortable align="center" />
                     <el-table-column prop="ps" label="备注" align="center" />
-                    <el-table-column label="Operations" width="150">
+                    <el-table-column label="Operations" width="200">
                         <template #default="scope">
+                            <el-button link type="primary" size="small"
+                                @click="openWaybill(scope.row)">面单</el-button>
                             <el-button link type="primary" size="small"
                                 @click="editOrder(scope.row)">编辑</el-button>
                             <el-popconfirm title="确认删除？" @confirm="deleteOrder((scope.row.orderId).toString())">
@@ -392,6 +420,13 @@
                 </template>
             </div>
         </div>
+
+        <!-- 面单预览弹窗 -->
+        <WaybillPreview
+            v-model="waybillVisible"
+            :order-id="waybillOrderId"
+            :goods-count="waybillGoodsCount"
+        />
     </div>
 </template>
 
@@ -403,8 +438,9 @@ import {
     apiGetOrders, apiGetOrder, apiAddOrder, apiSetOrder, apiDeleteOrder,
     apiGetGoods, apiAddGoods, apiSetGoods, apiDeleteGoods,
     apiGetTrack, apiSetTrack, apiGenerateOrderId,
-    baseURL
+    baseURL, apiExportBill
 } from '../../api/index';
+import WaybillPreview from './waybillPreview/index.vue';
 import countryOption, { countryMap } from './country';
 import { useImgBaseUrl } from '../../utils/useImgBaseUrl';
 
@@ -427,13 +463,33 @@ const stateList = ref<any>({
 const stateOn = ref<number>(100);
 const currentPage = ref(1);
 const pageSize = ref(50);
+const selectedOrders = ref<any[]>([]);
+const filterDateRange = ref<string[]>([]);
+const filterDestination = ref('');
 
 const totalPage = computed(() => {
-    if (stateOn.value == 100) {
-        return orderList.value.length;
-    }
-    return stateList.value[`state${stateOn.value + 1}`].length;
+    return getFilteredList().length;
 });
+
+const getFilteredList = () => {
+    let list = stateOn.value == 100 ? orderList.value : stateList.value[`state${stateOn.value + 1}`];
+    if (filterDateRange.value && filterDateRange.value.length === 2) {
+        const [start, end] = filterDateRange.value;
+        list = list.filter(item => {
+            if (!item.updateTime) return false;
+            const d = new Date(parseInt(item.updateTime)).toISOString().slice(0, 10);
+            return d >= start && d <= end;
+        });
+    }
+    if (filterDestination.value) {
+        list = list.filter(item => item.destination === filterDestination.value);
+    }
+    return list;
+};
+
+const applyFilters = () => {
+    handleCurrentChange(1);
+};
 
 const enumState = ['待上网', '运输中', '派送中', '投递失败', '成功签收', '可能异常'];
 const stateOptions = [
@@ -444,6 +500,47 @@ const stateOptions = [
     { id: '4', name: '成功签收' },
     { id: '5', name: '可能异常' },
 ];
+
+const handleSelectionChange = (selection: any[]) => {
+    selectedOrders.value = selection;
+};
+
+const exportBill = () => {
+    if (selectedOrders.value.length === 0) {
+        ElMessage.warning('请先勾选要导出的订单');
+        return;
+    }
+    const loading = ElLoading.service(loadOpt);
+    const orderIds = selectedOrders.value.map(item => item.orderId || item.id);
+    apiExportBill(orderIds).then((res: any) => {
+        if (res.code === 0) {
+            ElMessage.success('账单导出成功');
+        } else {
+            ElMessage.error(res.msg || '导出失败');
+        }
+    }).finally(() => loading.close());
+};
+
+// ===== 面单生成 =====
+const waybillVisible = ref(false);
+const waybillOrderId = ref('');
+const waybillGoodsCount = ref(1);
+const goodsMapRef = ref<Record<string, any[]>>({});
+
+const openWaybill = (row: any) => {
+    waybillOrderId.value = row.orderId || row.id;
+    // 获取该订单的货物数量
+    apiGetGoods(waybillOrderId.value).then((res: any) => {
+        if (res.code >= 0 && res.data) {
+            const list = Array.isArray(res.data) ? res.data : [];
+            goodsMapRef.value[waybillOrderId.value] = list;
+            waybillGoodsCount.value = list.length || 1;
+        } else {
+            waybillGoodsCount.value = 1;
+        }
+        waybillVisible.value = true;
+    });
+};
 
 const transTime = (date: string | Date) => {
     const time = new Date(typeof date === 'string' ? parseInt(date) : date);
@@ -471,19 +568,19 @@ const handleSizeChange = (val: number) => {
 const handleCurrentChange = (val: number) => {
     const start = (currentPage.value - 1) * pageSize.value;
     const end = currentPage.value * pageSize.value;
-    if (stateOn.value == 100) {
-        tableData.value = orderList.value.slice(start, end);
-    } else {
-        tableData.value = stateList.value[`state${stateOn.value + 1}`].slice(start, end);
-    }
+    tableData.value = getFilteredList().slice(start, end);
 };
 const switchList = (index: number) => {
     stateOn.value = index;
+    currentPage.value = 1;
     handleCurrentChange(1);
 };
 
 // ============== Fetch Orders ==============
 const getOrders = () => {
+    filterDateRange.value = [];
+    filterDestination.value = [];
+    selectedOrders.value = [];
     return apiGetOrders().then((res) => {
         const dataList = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
         if (res.code >= 0 && dataList.length > 0) {
@@ -928,6 +1025,13 @@ onMounted(() => {
     justify-content: start;
     width: 80%;
     padding: 8px 0;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    flex-wrap: wrap;
 }
 
 .state-box .btn {

@@ -386,3 +386,112 @@ export const apiGetNav = (name: string) => {
     params: { name },
   }).then(filterRes);
 }
+
+// 账单导出
+export const apiExportBill = (orderIds: string[]) => {
+  return request({
+    url: `${baseURL}/v1/bill/export`,
+    method: "post",
+    headers: { "Content-Type": "application/json" },
+    data: { orderIds },
+    responseType: "arraybuffer",
+  }).then((res: AxiosResponse) => {
+    if (res.status === 200) {
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `账单_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      return { code: 0, msg: "导出成功" };
+    }
+    return { code: -1, msg: "导出失败" };
+  });
+}
+
+// 面单生成
+export const apiGenerateWaybill = (orderId: string, goodsIndices?: number[], watermark?: boolean) => {
+  return request({
+    url: `${baseURL}/v1/waybill/generate`,
+    method: "post",
+    headers: { "Content-Type": "application/json" },
+    data: { orderId, goodsIndices, watermark },
+  }).then(filterRes);
+}
+
+// 客户管理
+export const apiGetCustomers = (keyword?: string, page?: number, pageSize?: number) => {
+  return request({
+    url: `${baseURL}/v1/get/customer`,
+    method: "get",
+    params: { keyword, page, pageSize },
+  }).then(filterRes);
+};
+export const apiGetCustomer = (id: string) => {
+  return request({
+    url: `${baseURL}/v1/customer`,
+    method: "get",
+    params: { id },
+  }).then(filterRes);
+};
+export const apiAddCustomer = (params: Record<string, any>) => {
+  return request({
+    url: `${baseURL}/v1/customer`,
+    method: "post",
+    headers: { "Content-Type": "application/json" },
+    data: params,
+  }).then(filterRes);
+};
+export const apiSetCustomer = (params: Record<string, any>) => {
+  return request({
+    url: `${baseURL}/v1/customer`,
+    method: "put",
+    headers: { "Content-Type": "application/json" },
+    data: params,
+  }).then(filterRes);
+};
+export const apiDeleteCustomer = (params: { id: string }) => {
+  return request({
+    url: `${baseURL}/v1/customer`,
+    method: "delete",
+    headers: { "Content-Type": "application/json" },
+    data: params,
+  }).then(filterRes);
+}
+
+// 角色管理
+export const apiGetRoles = () => {
+  return request({
+    url: `${baseURL}/v1/get/role`,
+    method: "get",
+  }).then(filterRes);
+};
+export const apiAddRole = (params: { name: string; keys: string[]; remark?: string }) => {
+  return request({
+    url: `${baseURL}/v1/role`,
+    method: "post",
+    headers: { "Content-Type": "application/json" },
+    data: params,
+  }).then(filterRes);
+};
+export const apiSetRole = (params: { id: number; name: string; keys: string[]; remark?: string }) => {
+  return request({
+    url: `${baseURL}/v1/role`,
+    method: "put",
+    headers: { "Content-Type": "application/json" },
+    data: params,
+  }).then(filterRes);
+};
+export const apiDeleteRole = (params: { id: number }) => {
+  return request({
+    url: `${baseURL}/v1/role`,
+    method: "delete",
+    headers: { "Content-Type": "application/json" },
+    data: params,
+  }).then(filterRes);
+};

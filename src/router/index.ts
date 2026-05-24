@@ -168,11 +168,11 @@ const routes: RouteRecordRaw[] = [
         name: "permission",
         meta: {
           title: "权限管理",
-          permiss: "13",
+          permiss: "13-2",
         },
         component: () =>
           import(
-            /* webpackChunkName: "usermanage" */ "../views/_permission.vue"
+            /* webpackChunkName: "permission" */ "../views/permission/index.vue"
           ),
       },
       {
@@ -253,6 +253,16 @@ const routes: RouteRecordRaw[] = [
         },
         component: () =>
           import(/* webpackChunkName: "order" */ "../views/order/index.vue"),
+      },
+      {
+        path: "/customer",
+        name: "customer",
+        meta: {
+          title: "客户管理",
+          permiss: "11",
+        },
+        component: () =>
+          import(/* webpackChunkName: "customer" */ "../views/customer/index.vue"),
       },
       {
         path: "/order-detail",
