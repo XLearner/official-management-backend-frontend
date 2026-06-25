@@ -301,7 +301,7 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  document.title = `${to.meta.title} | vue-manage-system`;
+  document.title = `${to.meta.title}`;
   const role = localStorage.getItem("ms_username");
   const permiss = usePermissStore();
   const status = await checkLogin();

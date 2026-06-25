@@ -48,12 +48,13 @@
                     </el-table-column>
                     <el-table-column prop="suplierId" label="转单号" align="center" />
                     <el-table-column prop="updateTime" label="创建日期" sortable align="center" :formatter="formatTime" />
-                    <el-table-column prop="state" label="最新状态" align="center" :formatter="formatter" />
+                    <el-table-column prop="state" label="当前状态" align="center" :formatter="formatter" />
                     <el-table-column prop="destination" label="目的地" align="center" :formatter="trCountry" />
                     <el-table-column prop="warehouse" label="交货仓库" sortable align="center" />
                     <el-table-column prop="inHouseTime" label="入仓时间" sortable align="center" :formatter="formatInHouseTime" />
                     <el-table-column prop="goodsName" label="商品名称" sortable align="center" />
                     <el-table-column prop="ps" label="备注" align="center" />
+                    <el-table-column prop="billExportCount" label="导出次数" align="center" width="80" />
                     <el-table-column label="Operations" width="200">
                         <template #default="scope">
                             <el-button link type="primary" size="small"
@@ -290,12 +291,13 @@
                                 </el-form-item>
                             </el-col>
                             <el-col :span="12">
-                                <el-form-item label="长、宽、高" :label-width="formLabelWidth">
+                                <el-form-item label="长、宽、高(cm)" :label-width="formLabelWidth">
                                     <el-input v-model="goodsForm.length" style="width: 60px; margin-right: 5px;"
                                         placeholder="长" />
                                     <el-input v-model="goodsForm.width" style="width: 60px; margin-right: 5px;"
                                         placeholder="宽" />
                                     <el-input v-model="goodsForm.height" style="width: 60px;" placeholder="高" />
+                                    <span style="margin-left: 10px; white-space: nowrap; font-size: 13px; color: #666;">材积重量: {{ volumetricWeight }} kg</span>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="12">
@@ -382,7 +384,7 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item label="当前状态" :label-width="formLabelWidth">
-                        <el-select v-model="form.trackState" placeholder="状态" size="large" style="width: 240px" :disabled="isViewMode">
+                        <el-select v-model="form.state" placeholder="状态" size="large" style="width: 240px" :disabled="isViewMode">
                             <el-option v-for="item in stateOptions" :key="item.id" :label="item.name" :value="item.id" />
                         </el-select>
                     </el-form-item>
@@ -433,7 +435,7 @@
 <script setup lang="ts">
 import { ElLoading, ElMessage, UploadProps } from 'element-plus';
 import { Check, Delete, Plus } from '@element-plus/icons-vue';
-import { onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import {
     apiGetOrders, apiGetOrder, apiAddOrder, apiSetOrder, apiDeleteOrder,
     apiGetGoods, apiAddGoods, apiSetGoods, apiDeleteGoods,
@@ -644,7 +646,6 @@ const form = reactive({
     ps: '',
     inHouseTime: null as Date | null,
     warehouse: '',
-    trackState: '0',
     shipper: {
         contactPeople: '',
         companyName: '',
@@ -684,6 +685,13 @@ const goodsForm = reactive({
     inPic: '',
     outPic: '',
     signPic: '',
+});
+
+const volumetricWeight = computed(() => {
+    const l = parseFloat(goodsForm.length) || 0;
+    const w = parseFloat(goodsForm.width) || 0;
+    const h = parseFloat(goodsForm.height) || 0;
+    return ((l * w * h) / 6000).toFixed(2);
 });
 
 const clearGoodsForm = () => {
@@ -860,7 +868,7 @@ const toTrack = (id: string) => {
 const getId = () => {
     apiGenerateOrderId().then((res) => {
         if (res.code >= 0 && res.data) {
-            form.orderId = res.data;
+            form.orderId = res.data.orderId;
         }
     });
 };
@@ -874,7 +882,6 @@ const clearForm = () => {
     form.ps = '';
     form.inHouseTime = null;
     form.warehouse = '';
-    form.trackState = '0';
     form.shipper = { contactPeople: '', companyName: '', tel: '', addr: '' };
     form.receiver = { contactPeople: '', companyName: '', tel: '', email: '', addr: '', zipCode: '', country: '' };
     goodsList.value = [];
@@ -911,7 +918,6 @@ const editOrder = (row: any) => {
                 ps: data.ps || '',
                 inHouseTime: data.inHouseTime ? new Date(parseInt(data.inHouseTime)) : null,
                 warehouse: data.warehouse || '',
-                trackState: String(data.state) || '0',
                 shipper: {
                     contactPeople: data.shipper?.contactPeople || '',
                     companyName: data.shipper?.companyName || '',
@@ -991,7 +997,7 @@ const saveOrder = () => {
             apiSetTrack({
                 id: form.orderId,
                 history: JSON.stringify(trackHistory.value.concat([])),
-                state: form.trackState,
+                state: form.state,
                 ps: form.ps,
             }).then(() => {
                 ElMessage.success(isEdit.value ? '更新成功' : '新增成功');
