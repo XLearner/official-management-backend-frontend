@@ -12,9 +12,35 @@
                             item }}({{ stateList[`state${index + 1}`].length }})</el-link>
                     </template>
                 </div>
+                <div class="toolbar">
+                    <el-date-picker
+                        v-model="filterDateRange"
+                        type="daterange"
+                        range-separator="至"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        value-format="YYYY-MM-DD"
+                        size="small"
+                        style="width: 240px; margin-right: 10px;"
+                        @change="applyFilters"
+                    />
+                    <el-select
+                        v-model="filterDestination"
+                        filterable
+                        clearable
+                        placeholder="目的国"
+                        size="small"
+                        style="width: 160px; margin-right: 10px;"
+                        @change="applyFilters"
+                    >
+                        <el-option v-for="item in countryOption" :key="item.code" :label="item.name_zh" :value="item.code" />
+                    </el-select>
+                    <span style="margin-right: 10px; font-size: 13px;">已选 {{ selectedOrders.length }} 笔</span>
+                    <el-button type="success" size="small" :disabled="selectedOrders.length === 0" @click="exportBill">导出账单</el-button>
+                </div>
                 <el-table :data="tableData" border :default-sort="{ prop: 'updateTime', order: 'descending' }"
-                    style="width: 100%">
-                    <el-table-column type="index" label="序号" width="80" align="center" />
+                    style="width: 100%" @selection-change="handleSelectionChange">
+                    <el-table-column type="selection" width="40" />
                     <el-table-column label="运单号" align="center">
                         <template #default="scope">
                             {{ scope.row.orderId }}
@@ -22,14 +48,17 @@
                     </el-table-column>
                     <el-table-column prop="suplierId" label="转单号" align="center" />
                     <el-table-column prop="updateTime" label="创建日期" sortable align="center" :formatter="formatTime" />
-                    <el-table-column prop="state" label="最新状态" align="center" :formatter="formatter" />
+                    <el-table-column prop="state" label="当前状态" align="center" :formatter="formatter" />
                     <el-table-column prop="destination" label="目的地" align="center" :formatter="trCountry" />
                     <el-table-column prop="warehouse" label="交货仓库" sortable align="center" />
                     <el-table-column prop="inHouseTime" label="入仓时间" sortable align="center" :formatter="formatInHouseTime" />
                     <el-table-column prop="goodsName" label="商品名称" sortable align="center" />
                     <el-table-column prop="ps" label="备注" align="center" />
-                    <el-table-column label="Operations" width="150">
+                    <el-table-column prop="billExportCount" label="导出次数" align="center" width="80" />
+                    <el-table-column label="Operations" width="200">
                         <template #default="scope">
+                            <el-button link type="primary" size="small"
+                                @click="openWaybill(scope.row)">面单</el-button>
                             <el-button link type="primary" size="small"
                                 @click="editOrder(scope.row)">编辑</el-button>
                             <el-popconfirm title="确认删除？" @confirm="deleteOrder((scope.row.orderId).toString())">
@@ -262,12 +291,13 @@
                                 </el-form-item>
                             </el-col>
                             <el-col :span="12">
-                                <el-form-item label="长、宽、高" :label-width="formLabelWidth">
+                                <el-form-item label="长、宽、高(cm)" :label-width="formLabelWidth">
                                     <el-input v-model="goodsForm.length" style="width: 60px; margin-right: 5px;"
                                         placeholder="长" />
                                     <el-input v-model="goodsForm.width" style="width: 60px; margin-right: 5px;"
                                         placeholder="宽" />
                                     <el-input v-model="goodsForm.height" style="width: 60px;" placeholder="高" />
+                                    <span style="margin-left: 10px; white-space: nowrap; font-size: 13px; color: #666;">材积重量: {{ volumetricWeight }} kg</span>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="12">
@@ -354,7 +384,7 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item label="当前状态" :label-width="formLabelWidth">
-                        <el-select v-model="form.trackState" placeholder="状态" size="large" style="width: 240px" :disabled="isViewMode">
+                        <el-select v-model="form.state" placeholder="状态" size="large" style="width: 240px" :disabled="isViewMode">
                             <el-option v-for="item in stateOptions" :key="item.id" :label="item.name" :value="item.id" />
                         </el-select>
                     </el-form-item>
@@ -392,19 +422,27 @@
                 </template>
             </div>
         </div>
+
+        <!-- 面单预览弹窗 -->
+        <WaybillPreview
+            v-model="waybillVisible"
+            :order-id="waybillOrderId"
+            :goods-count="waybillGoodsCount"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import { ElLoading, ElMessage, UploadProps } from 'element-plus';
 import { Check, Delete, Plus } from '@element-plus/icons-vue';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import {
     apiGetOrders, apiGetOrder, apiAddOrder, apiSetOrder, apiDeleteOrder,
     apiGetGoods, apiAddGoods, apiSetGoods, apiDeleteGoods,
     apiGetTrack, apiSetTrack, apiGenerateOrderId,
-    baseURL
+    baseURL, apiExportBill
 } from '../../api/index';
+import WaybillPreview from './waybillPreview/index.vue';
 import countryOption, { countryMap } from './country';
 import { useImgBaseUrl } from '../../utils/useImgBaseUrl';
 
@@ -419,7 +457,6 @@ const loadOpt = {
 };
 
 // ============== Order List State ==============
-const tableData = ref<any[]>([]);
 const orderList = ref<any[]>([]);
 const stateList = ref<any>({
     state1: [], state2: [], state3: [], state4: [], state5: [], state6: [],
@@ -427,13 +464,46 @@ const stateList = ref<any>({
 const stateOn = ref<number>(100);
 const currentPage = ref(1);
 const pageSize = ref(50);
+const selectedOrders = ref<any[]>([]);
+const filterDateRange = ref<string[]>([]);
+const filterDestination = ref('');
 
-const totalPage = computed(() => {
-    if (stateOn.value == 100) {
-        return orderList.value.length;
+// ============== Filter helper ==============
+const getFilteredList = () => {
+    let list = stateOn.value === 100
+        ? orderList.value
+        : stateList.value[`state${stateOn.value + 1}`] || [];
+
+    if (filterDateRange.value && filterDateRange.value.length === 2) {
+        const [start, end] = filterDateRange.value;
+        list = list.filter((item: any) => {
+            if (!item.updateTime) return false;
+            const d = new Date(parseInt(item.updateTime)).toISOString().slice(0, 10);
+            return d >= start && d <= end;
+        });
     }
-    return stateList.value[`state${stateOn.value + 1}`].length;
-});
+    if (filterDestination.value) {
+        list = list.filter((item: any) => item.destination === filterDestination.value);
+    }
+    return list;
+};
+
+const totalPage = ref(0);
+const tableData = ref<any[]>([]);
+
+const refreshTable = () => {
+    const filtered = getFilteredList();
+    totalPage.value = filtered.length;
+    const start = (currentPage.value - 1) * pageSize.value;
+    tableData.value = filtered.slice(start, start + pageSize.value);
+};
+
+watch([orderList, stateOn, currentPage, pageSize, filterDateRange, filterDestination], refreshTable, { deep: true });
+
+const applyFilters = () => {
+    currentPage.value = 1;
+    refreshTable();
+};
 
 const enumState = ['待上网', '运输中', '派送中', '投递失败', '成功签收', '可能异常'];
 const stateOptions = [
@@ -444,6 +514,47 @@ const stateOptions = [
     { id: '4', name: '成功签收' },
     { id: '5', name: '可能异常' },
 ];
+
+const handleSelectionChange = (selection: any[]) => {
+    selectedOrders.value = selection;
+};
+
+const exportBill = () => {
+    if (selectedOrders.value.length === 0) {
+        ElMessage.warning('请先勾选要导出的订单');
+        return;
+    }
+    const loading = ElLoading.service(loadOpt);
+    const orderIds = selectedOrders.value.map(item => item.orderId || item.id);
+    apiExportBill(orderIds).then((res: any) => {
+        if (res.code === 0) {
+            ElMessage.success('账单导出成功');
+        } else {
+            ElMessage.error(res.msg || '导出失败');
+        }
+    }).finally(() => loading.close());
+};
+
+// ===== 面单生成 =====
+const waybillVisible = ref(false);
+const waybillOrderId = ref('');
+const waybillGoodsCount = ref(1);
+const goodsMapRef = ref<Record<string, any[]>>({});
+
+const openWaybill = (row: any) => {
+    waybillOrderId.value = row.orderId || row.id;
+    // 获取该订单的货物数量
+    apiGetGoods(waybillOrderId.value).then((res: any) => {
+        if (res.code >= 0 && res.data) {
+            const list = Array.isArray(res.data) ? res.data : [];
+            goodsMapRef.value[waybillOrderId.value] = list;
+            waybillGoodsCount.value = list.length || 1;
+        } else {
+            waybillGoodsCount.value = 1;
+        }
+        waybillVisible.value = true;
+    });
+};
 
 const transTime = (date: string | Date) => {
     const time = new Date(typeof date === 'string' ? parseInt(date) : date);
@@ -466,27 +577,27 @@ const formatInHouseTime = (row: any) => {
 // ============== Pagination & Filter ==============
 const handleSizeChange = (val: number) => {
     pageSize.value = val;
-    handleCurrentChange(currentPage.value);
+    currentPage.value = 1;
+    refreshTable();
 };
 const handleCurrentChange = (val: number) => {
-    const start = (currentPage.value - 1) * pageSize.value;
-    const end = currentPage.value * pageSize.value;
-    if (stateOn.value == 100) {
-        tableData.value = orderList.value.slice(start, end);
-    } else {
-        tableData.value = stateList.value[`state${stateOn.value + 1}`].slice(start, end);
-    }
+    currentPage.value = val;
+    refreshTable();
 };
 const switchList = (index: number) => {
     stateOn.value = index;
-    handleCurrentChange(1);
+    currentPage.value = 1;
+    refreshTable();
 };
 
 // ============== Fetch Orders ==============
 const getOrders = () => {
-    return apiGetOrders().then((res) => {
-        const dataList = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
-        if (res.code >= 0 && dataList.length > 0) {
+    filterDateRange.value = [];
+    filterDestination.value = '';
+    selectedOrders.value = [];
+    return apiGetOrders().then((res: any) => {
+        const dataList = Array.isArray(res?.data) ? res.data : (res?.data ? [res.data] : []);
+        if (res?.code >= 0 && dataList.length > 0) {
             const tempStateList: any = {
                 state1: [], state2: [], state3: [], state4: [], state5: [], state6: [],
             };
@@ -504,7 +615,9 @@ const getOrders = () => {
             });
             stateList.value = tempStateList;
             switchList(stateOn.value);
+        } else {
         }
+    }).catch((err: any) => {
     });
 };
 
@@ -533,7 +646,6 @@ const form = reactive({
     ps: '',
     inHouseTime: null as Date | null,
     warehouse: '',
-    trackState: '0',
     shipper: {
         contactPeople: '',
         companyName: '',
@@ -573,6 +685,13 @@ const goodsForm = reactive({
     inPic: '',
     outPic: '',
     signPic: '',
+});
+
+const volumetricWeight = computed(() => {
+    const l = parseFloat(goodsForm.length) || 0;
+    const w = parseFloat(goodsForm.width) || 0;
+    const h = parseFloat(goodsForm.height) || 0;
+    return ((l * w * h) / 6000).toFixed(2);
 });
 
 const clearGoodsForm = () => {
@@ -749,7 +868,7 @@ const toTrack = (id: string) => {
 const getId = () => {
     apiGenerateOrderId().then((res) => {
         if (res.code >= 0 && res.data) {
-            form.orderId = res.data;
+            form.orderId = res.data.orderId;
         }
     });
 };
@@ -763,7 +882,6 @@ const clearForm = () => {
     form.ps = '';
     form.inHouseTime = null;
     form.warehouse = '';
-    form.trackState = '0';
     form.shipper = { contactPeople: '', companyName: '', tel: '', addr: '' };
     form.receiver = { contactPeople: '', companyName: '', tel: '', email: '', addr: '', zipCode: '', country: '' };
     goodsList.value = [];
@@ -800,7 +918,6 @@ const editOrder = (row: any) => {
                 ps: data.ps || '',
                 inHouseTime: data.inHouseTime ? new Date(parseInt(data.inHouseTime)) : null,
                 warehouse: data.warehouse || '',
-                trackState: String(data.state) || '0',
                 shipper: {
                     contactPeople: data.shipper?.contactPeople || '',
                     companyName: data.shipper?.companyName || '',
@@ -880,7 +997,7 @@ const saveOrder = () => {
             apiSetTrack({
                 id: form.orderId,
                 history: JSON.stringify(trackHistory.value.concat([])),
-                state: form.trackState,
+                state: form.state,
                 ps: form.ps,
             }).then(() => {
                 ElMessage.success(isEdit.value ? '更新成功' : '新增成功');
@@ -895,8 +1012,13 @@ const saveOrder = () => {
 
 // ============== Init ==============
 onMounted(() => {
-    const loading = ElLoading.service(loadOpt);
-    getOrders().finally(() => loading.close());
+    try {
+        const loading = ElLoading.service(loadOpt);
+        getOrders().finally(() => {
+            loading.close();
+        });
+    } catch (e) {
+    }
 });
 </script>
 
@@ -928,6 +1050,13 @@ onMounted(() => {
     justify-content: start;
     width: 80%;
     padding: 8px 0;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    flex-wrap: wrap;
 }
 
 .state-box .btn {

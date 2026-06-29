@@ -110,6 +110,12 @@ const items: any = [
         title: '订单管理',
         permiss: '11',
     },
+    {
+        icon: 'User',
+        index: '/customer',
+        title: '客户管理',
+        permiss: '11',
+    },
     // {
     //     icon: 'Calendar',
     //     index: '1',

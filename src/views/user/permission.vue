@@ -1,166 +1,112 @@
 <template>
-	<el-dialog v-model="dialogFormVisible" title="权限编辑" :before-close="beforeClose" :width="800">
-        <div class="container">
-            <div class="plugins-tips">通过 v-permiss 自定义指令实现权限管理，使用非 admin 账号登录，可查看效果。</div>
-            <div class="mgb20">
-                <span class="label">角色：</span>
-                <el-select v-model="role" @change="handleChange">
-                    <el-option label="超级管理员" value="admin"></el-option>
-                    <el-option label="普通用户" value="user"></el-option>
-                </el-select>
-            </div>
-            <div class="mgb20 tree-wrapper">
-                <el-tree
-                    ref="tree"
-                    :data="data"
-                    node-key="id"
-                    default-expand-all
-                    show-checkbox
-                    :default-checked-keys="checkedKeys"
-                />
-            </div>
-            <el-button type="primary" @click="onSubmit">保存权限</el-button>
-        </div>
-    </el-dialog>
+	<el-dialog v-model="dialogFormVisible" title="分配角色" :before-close="beforeClose" width="500">
+		<div v-if="currentUser" class="user-info">
+			<span class="label">当前用户：</span>
+			<strong>{{ currentUser.account }}</strong>
+		</div>
+
+		<el-form label-width="80px" style="margin-top: 16px;">
+			<el-form-item label="选择角色">
+				<el-select v-model="selectedRoleId" placeholder="请选择角色" style="width: 100%;">
+					<el-option
+						v-for="role in roleList"
+						:key="role.id"
+						:label="role.name + (role.remark ? ' - ' + role.remark : '')"
+						:value="role.id"
+					>
+						<span>{{ role.name }}</span>
+						<el-tag v-if="isBuiltIn(role)" size="small" type="info" style="margin-left: 8px;">内置</el-tag>
+					</el-option>
+				</el-select>
+			</el-form-item>
+		</el-form>
+
+		<template #footer>
+			<el-button @click="close">取消</el-button>
+			<el-button type="primary" :loading="saving" @click="submit">保存</el-button>
+		</template>
+	</el-dialog>
 </template>
 
-<script setup lang="ts" name="permission">
-import { ref } from 'vue';
-import { ElTree } from 'element-plus';
-import { usePermissStore } from '../../store/permiss';
-
-const role = ref<string>('admin');
-
-interface Tree {
-	id: string;
-	label: string;
-	children?: Tree[];
-}
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { ElMessage } from 'element-plus';
+import { apiGetRoles, apiSetUser } from '../../api/index';
 
 const dialogFormVisible = ref(false);
-const data: Tree[] = [
-	{
-		id: '1',
-		label: '系统首页'
-	},
-	{
-		id: '2',
-		label: '基础表格',
-		children: [
-			{
-				id: '15',
-				label: '编辑'
-			},
-			{
-				id: '16',
-				label: '删除'
-			}
-		]
-	},
-	{
-		id: '3',
-		label: 'tab选项卡'
-	},
-	{
-		id: '4',
-		label: '表单相关',
-		children: [
-			{
-				id: '5',
-				label: '基本表单'
-			},
-			{
-				id: '6',
-				label: '文件上传'
-			},
-			{
-				id: '7',
-				label: '三级菜单',
-				children: [
-					{
-						id: '8',
-						label: '富文本编辑器'
-					},
-					{
-						id: '9',
-						label: 'markdown编辑器'
-					}
-				]
-			}
-		]
-	},
-	{
-		id: '10',
-		label: '自定义图标'
-	},
-	{
-		id: '11',
-		label: 'schart图表'
-	},
+const currentUser = ref<any>(null);
+const selectedRoleId = ref<number | null>(null);
+const roleList = ref<any[]>([]);
+const saving = ref(false);
 
-	{
-		id: '13',
-		label: '权限管理'
-	},
-	{
-		id: '14',
-		label: '支持作者'
+const emit = defineEmits(["success"]);
+
+const isBuiltIn = (role: any) => {
+	return ['R000000001', 'R000000002', 'R000000003'].includes(role.role_no);
+};
+
+const loadRoles = async () => {
+	const res: any = await apiGetRoles();
+	if (res.code >= 0) {
+		roleList.value = res.data || [];
 	}
-];
-
-const permiss = usePermissStore();
-
-const emits = defineEmits(["success"]);
-
-const show = (id: string) => {
-    dialogFormVisible.value = true;
-    if (id) {
-        // apiGetUsers(id).then(res => {
-        //     form.account = res.data[0].account;
-        //     form.date = res.data[0].date;
-        //     form.id = res.data[0].id;
-        //     form.permission = res.data[0].permission;
-        //     form.ps = res.data[0].ps;
-        // })
-    }
 };
+
+const show = async (user: any) => {
+	currentUser.value = user;
+	selectedRoleId.value = user.role_id || null;
+	dialogFormVisible.value = true;
+
+	await loadRoles();
+};
+
 const close = () => {
-    dialogFormVisible.value = false;
-    clearDialog();
+	dialogFormVisible.value = false;
+	currentUser.value = null;
+	selectedRoleId.value = null;
 };
+
 const beforeClose = (done: () => void) => {
-    clearDialog();
-    done();
-};
-const clearDialog = () => {
-
-}
-
-// 获取当前权限
-const checkedKeys = ref<string[]>([]);
-const getPremission = () => {
-	// 请求接口返回权限
-	checkedKeys.value = permiss.defaultList[role.value];
-};
-getPremission();
-
-// 保存权限
-const tree = ref<InstanceType<typeof ElTree>>();
-const onSubmit = () => {
-	// 获取选中的权限
-	console.log(tree.value!.getCheckedKeys(false));
+	close();
+	done();
 };
 
-const handleChange = (val: string[]) => {
-	tree.value!.setCheckedKeys(permiss.defaultList[role.value]);
+const submit = async () => {
+	if (!currentUser.value) return;
+
+	saving.value = true;
+	const res: any = await apiSetUser({
+		id: currentUser.value.id.toString(),
+		role_id: selectedRoleId.value?.toString() || '',
+		account: currentUser.value.account,
+		date: currentUser.value.date,
+		permission: currentUser.value.permission,
+		ps: currentUser.value.ps,
+	}).finally(() => {
+		saving.value = false;
+	});
+
+	if (res.code >= 0) {
+		ElMessage.success('角色分配成功');
+		emit('success');
+		close();
+	} else {
+		ElMessage.error(res.msg || '分配失败');
+	}
 };
+
+defineExpose({ show });
 </script>
 
 <style scoped>
-.tree-wrapper {
-	max-width: 500px;
+.user-info {
+	padding: 8px 12px;
+	background: #f5f7fa;
+	border-radius: 4px;
 }
+
 .label {
-	font-size: 14px;
+	color: #909399;
+	margin-right: 8px;
 }
 </style>
